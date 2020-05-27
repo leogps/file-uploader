@@ -1,0 +1,23 @@
+{
+  "name": "file-uploader",
+  "version": "1.0.0",
+  "description": "Facilitates file uploads.",
+  "main": "file-uploader.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "file"
+  ],
+  "author": "Paul Gundarapu",
+  "license": "ISC",
+  "dependencies": {
+    "bulma": "^0.8.2",
+    "express": "^4.17.1",
+    "formidable": "^1.2.2",
+    "jquery": "^3.5.1",
+    "jquery-blockui": "^2.7.0",
+    "serve-favicon": "^2.5.0",
+    "socket.io": "^2.3.0"
+  }
+}

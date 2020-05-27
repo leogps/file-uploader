@@ -1,0 +1,111 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>File Uploader!</title>
+
+    <link rel="stylesheet" href="/assets/css/bulma.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <h2>With Node.js <code>"File Uploader"</code> module</h2>
+    <section class="section">
+        <div class="container">
+            <form id="uploadForm" action="/upload" enctype="multipart/form-data" method="post">
+
+                <div class="field">
+                    <label class="label">Text field title</label>
+                    <div class="control">
+                        <input class="input" type="text" placeholder="Text input" name="title">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">File</label>
+                    <div class="control">
+                        <input class="input" type="file" placeholder="File" name="multipleFiles" multiple="multiple">
+                    </div>
+                </div>
+
+                <div class="control">
+                    <button type="submit" class="button is-link">Submit</button>
+                </div>
+
+
+                <!-- <div>Text field title: <input type="text" name="title" /></div>
+                <div>File: <input type="file" name="multipleFiles" multiple="multiple" /></div>
+                <input type="submit" value="Upload" /> -->
+            </form>
+        </div>
+    </section>
+
+    </section>
+    Upload Progress:
+    <div class="container">
+        <progress class="progress is-success" max="100" value="0"></progress>
+    </div>
+    </section>
+
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/assets/jquery.min.js"></script>
+<script src="/assets/jquery.blockUI.js"></script>
+<script>
+    var socket = io();
+    socket.emit('message', "Connected.");
+    var progressElem = document.getElementsByTagName("progress")[0];
+    socket.on('progress', (progress) => {
+        console.log("Progress: (" + progress.bytesReceived + "/" + progress.bytesExpected + ")");
+        progressElem.setAttribute("value", progress.bytesReceived);
+        progressElem.setAttribute("max", progress.bytesExpected);
+    });
+
+    jQuery(document).ready(function () {
+
+        jQuery("form#uploadForm").submit(function (event) {
+
+            event.stopPropagation();
+            event.preventDefault();
+
+            console.log("Form submitting...");
+
+            var data = new FormData();
+            $.each($('input[name="multipleFiles"]')[0].files, function (i, file) {
+                data.append('file-' + i, file);
+            });
+
+            var action = jQuery(this).attr('action');
+            $.ajax({
+                url: action,
+                data: data,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST', // For jQuery < 1.9
+                beforeSend: function () {
+                    jQuery("form#uploadForm").block({
+                        message: '<h1>Processing</h1>',
+                        css: { border: '3px solid #a00' }
+                    });
+                },
+                success: function (data) {
+                    alert(JSON.stringify(data));
+                },
+                error: function (err, s) {
+                    alert("Error occurred: " + JSON.stringify(err) + ";; s: " + s);
+                },
+                complete: function () {
+                    jQuery("form#uploadForm").trigger('reset');
+                    jQuery("form#uploadForm").unblock();
+                }
+            });
+        });
+
+    });
+
+</script>
+
+</html>
