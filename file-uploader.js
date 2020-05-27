@@ -11,6 +11,7 @@ const uploadsDir = "/home/leogps/Downloads/uploads/";
 const fs = require('fs');
 var io = require('socket.io')(http);
 const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; //10Gb
+const prettyBytes = require('pretty-bytes');
 
 var ProgressWriter = function (socket) {
   this.socket = socket;
@@ -32,7 +33,9 @@ app.post('/upload', (req, res) => {
     var progress = {
       type: 'progress',
       bytesReceived: bytesReceived,
-      bytesExpected: bytesExpected
+      bytesExpected: bytesExpected,
+      bytesReceivedPretty: prettyBytes(bytesReceived),
+      bytesExpectedPretty: prettyBytes(bytesExpected)
     };
     if (progressWriter) {
       progressWriter.writeProgress(progress);

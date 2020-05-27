@@ -43,6 +43,7 @@
     </section>
     Upload Progress:
     <div class="container">
+        <label id="progressLabel" class="label"></label>
         <progress class="progress is-success" max="100" value="0"></progress>
     </div>
     </section>
@@ -56,10 +57,12 @@
     var socket = io();
     socket.emit('message', "Connected.");
     var progressElem = document.getElementsByTagName("progress")[0];
+    var $progressLabelElem = jQuery("label#progressLabel");
     socket.on('progress', (progress) => {
         console.log("Progress: (" + progress.bytesReceived + "/" + progress.bytesExpected + ")");
         progressElem.setAttribute("value", progress.bytesReceived);
         progressElem.setAttribute("max", progress.bytesExpected);
+        $progressLabelElem.text("Progress: " + progress.bytesReceivedPretty + " / " + progress.bytesExpectedPretty);        
     });
 
     jQuery(document).ready(function () {
