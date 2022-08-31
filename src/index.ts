@@ -9,6 +9,7 @@ import {Progress} from "./model/progress";
 import {ProgressWriter} from "./service/progress_writer";
 import * as socketio from "socket.io";
 import { v4 as uuidv4 } from 'uuid';
+import * as _ from "lodash";
 
 
 const app: Express = express();
@@ -20,7 +21,9 @@ const io: socketio.Server = new socketio.Server(httpServer);
 const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10Gb
 
 const progresses: Progress[] = [];
+const uploadsProgressMap: Map<string, Progress> = new Map<string, Progress>();
 const progressWriter: ProgressWriter = new ProgressWriter(io);
+const throttleWaitTimeInMillis = 250;
 
 app.post('/upload', (req: any, res: any) => {
   // parse a file upload
@@ -30,21 +33,43 @@ app.post('/upload', (req: any, res: any) => {
   });
   const timestamp = new Date();
   const uuid = uuidv4();
+  const progress: Progress = {
+    uuid,
+    type: 'progress',
+    timestamp,
+    bytesReceived: 0,
+    bytesExpected: 0,
+    bytesReceivedPretty: prettyBytes(0),
+    bytesExpectedPretty: prettyBytes(0)
+  };
+  uploadsProgressMap.set(uuid, progress);
+  progresses.push(progress);
+
+  const throttledBroadcaster = _.throttle(() => {
+    console.log("Broadcasting progresses...");
+    progressWriter.writeProgress(progresses);
+  }, throttleWaitTimeInMillis, {
+    leading: true
+  });
 
   form.on('progress', (bytesReceived, bytesExpected) => {
     console.log("Progress: (" + bytesReceived + "/" + bytesExpected + ")");
-    const progress: Progress = {
-      uuid,
-      type: 'progress',
-      timestamp,
-      bytesReceived,
-      bytesExpected,
-      bytesReceivedPretty: prettyBytes(bytesReceived),
-      bytesExpectedPretty: prettyBytes(bytesExpected)
-    };
-    progresses.push(progress);
+    if (uploadsProgressMap.has(uuid)) {
+      const existingProgress = uploadsProgressMap.get(uuid);
+      if (existingProgress) {
+        existingProgress.bytesReceived = bytesReceived;
+        existingProgress.bytesExpected = bytesExpected;
+        existingProgress.bytesReceivedPretty = prettyBytes(bytesReceived);
+        existingProgress.bytesExpectedPretty = prettyBytes(bytesExpected);
+      }
+    } else {
+      // This can't be.
+      console.warn("Progress not found in the map for uuid: " + uuid);
+      return;
+    }
+
     if (progressWriter) {
-      progressWriter.writeProgress(progresses);
+      throttledBroadcaster();
     }
   });
 
@@ -90,15 +115,12 @@ app.get('/progresses', (req: Request, res: Response) => {
   res.end();
 });
 
-io.on('connection', (socket) => {
+io.on('connection', (socket: socketio.Socket) => {
   console.log('a user connected');
   socket.emit('progresses', progresses);
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });
-});
-
-io.on('connection', (socket: socketio.Socket) => {
   socket.on('message', (msg) => {
     console.log('message: ' + msg);
   });
@@ -108,7 +130,8 @@ app.use('/assets', [
   express.static(__dirname + '/node_modules/jquery/dist/'),
   express.static(__dirname + '/node_modules/jquery-blockui/'),
   express.static(__dirname + '/node_modules/bulma/'),
-  express.static(__dirname + '/node_modules/moment/')
+  express.static(__dirname + '/node_modules/moment/'),
+  express.static(__dirname + '/node_modules/throttle-debounce/')
 ]);
 app.use(favicon(path.join(__dirname, '/public/favicon.ico')));
 
