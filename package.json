@@ -4,6 +4,14 @@
   "description": "Facilitates file uploads.",
   "main": "file-uploader.js",
   "scripts": {
+    "clean": "rimraf dist",
+    "copy-files": "copyfiles -u 1 src/**/*.html src/**/*.css src/**/*.ico src/**/*.jpg src/**/*.png dist/ && cp -r node_modules dist/",
+    "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
+    "build": "rimraf dist && tsc && npm run copy-files",
+    "preserve": "npm run build",
+    "serve": "cross-env NODE_ENV=development concurrently \"tsc --watch\" \"nodemon -q dist/index.js\"",
+    "prestart": "npm run build",
+    "start": "cross-env NODE_ENV=production node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -12,15 +20,27 @@
   "author": "Paul Gundarapu",
   "license": "ISC",
   "dependencies": {
+    "@types/express": "^4.17.13",
+    "@types/formidable": "^2.0.5",
+    "@types/serve-favicon": "^2.5.3",
+    "@types/uuid": "^8.3.4",
     "bulma": "^0.8.2",
+    "cross-env": "^7.0.3",
     "express": "^4.17.1",
     "formidable": "^1.2.2",
     "jquery": "^3.5.1",
     "jquery-blockui": "^2.7.0",
     "moment": "^2.29.4",
     "pretty-bytes": "^5.3.0",
+    "rimraf": "^3.0.2",
     "serve-favicon": "^2.5.0",
-    "socket.io": "^2.3.0",
+    "socket.io": "^4.5.1",
+    "typescript": "^4.8.2",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "concurrently": "^7.3.0",
+    "nodemon": "^2.0.19",
+    "tslint": "^6.1.3"
   }
 }

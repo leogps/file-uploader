@@ -1,30 +1,28 @@
-var express = require('express');
-var favicon = require('serve-favicon');
-var path = require('path');
+import express, { Express, Request, Response } from 'express';
+import favicon from 'serve-favicon'
+import * as path from 'path'
+import {createServer, Server} from "http"
+import formidable, {File} from "formidable"
+import * as fs from "fs"
+import prettyBytes from 'pretty-bytes'
+import {Progress} from "./model/progress";
+import {ProgressWriter} from "./service/progress_writer";
+import * as socketio from "socket.io";
+import { v4 as uuidv4 } from 'uuid';
 
-var app = express();
-var http = require('http').createServer(app);
-const formidable = require('formidable');
+
+const app: Express = express();
+const httpServer: Server = createServer(app)
 const port = 8082;
-//const uploadsDir = "/home/pi/Downloads/uploads/";
-const uploadsDir = "/home/leogps/Downloads/uploads/";
-const fs = require('fs');
-var io = require('socket.io')(http);
-const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; //10Gb
-const prettyBytes = require('pretty-bytes');
-const { v4: uuidv4 } = require('uuid');
+// const uploadsDir = "/home/pi/Downloads/uploads/"
+const uploadsDir = "/home/leogps/Downloads/uploads/"
+const io: socketio.Server = new socketio.Server(httpServer);
+const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10Gb
 
-const progresses = [];
+const progresses: Progress[] = [];
+const progressWriter: ProgressWriter = new ProgressWriter(io);
 
-var ProgressWriter = function (socket) {
-  this.socket = socket;
-  this.writeProgress = function (progresses) {
-    io.emit('progresses', progresses);
-  };
-};
-var progressWriter = undefined;
-
-app.post('/upload', (req, res) => {
+app.post('/upload', (req: any, res: any) => {
   // parse a file upload
   const form = formidable({
     multiples: true,
@@ -35,12 +33,12 @@ app.post('/upload', (req, res) => {
 
   form.on('progress', (bytesReceived, bytesExpected) => {
     console.log("Progress: (" + bytesReceived + "/" + bytesExpected + ")");
-    var progress = {
-      uuid: uuid,
+    const progress: Progress = {
+      uuid,
       type: 'progress',
-      timestamp: timestamp,
-      bytesReceived: bytesReceived,
-      bytesExpected: bytesExpected,
+      timestamp,
+      bytesReceived,
+      bytesExpected,
       bytesReceivedPretty: prettyBytes(bytesReceived),
       bytesExpectedPretty: prettyBytes(bytesExpected)
     };
@@ -50,27 +48,27 @@ app.post('/upload', (req, res) => {
     }
   });
 
-  form.on('file', (name, file) => {
-    console.log('File recieved: ' + file);
-    if (file.name) {
-      console.log("file name: " + file.name);
+  form.on('file', (formName: string, file: File) => {
+    console.log('File received: ' + file);
+    if (file.originalFilename) {
+      console.log("file name: " + file.originalFilename);
     } else {
       return
     }
-    var oldpath = file.path;
-    var newpath = uploadsDir + file.name;
-    fs.rename(oldpath, newpath, function (err) {
+    const oldPath = file.filepath;
+    const newPath = uploadsDir + file.originalFilename;
+    fs.rename(oldPath, newPath, (err) => {
       if (err) {
         console.error(err);
       }
-      console.log("File moved to: " + newpath);
+      console.log("File moved to: " + newPath);
     });
   });
 
   form.parse(req, (err, fields, files) => {
     res.writeHead(200, { 'content-type': 'application/json' });
     console.log(files);
-    var success = {
+    const success = {
       "msg": 'File uploaded and moved!'
     };
     res.write(JSON.stringify(success));
@@ -82,10 +80,10 @@ app.post('/upload', (req, res) => {
 
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/public/index.html');
 });
 
-app.get('/progresses', (req, res) => {
+app.get('/progresses', (req: Request, res: Response) => {
   console.log("Progresses requested...");
   res.writeHead(200, { 'content-type': 'application/json' });
   res.write(JSON.stringify(progresses));
@@ -100,12 +98,10 @@ io.on('connection', (socket) => {
   });
 });
 
-io.on('connection', (socket) => {
+io.on('connection', (socket: socketio.Socket) => {
   socket.on('message', (msg) => {
     console.log('message: ' + msg);
   });
-
-  progressWriter = new ProgressWriter(socket);
 });
 
 app.use('/assets', [
@@ -114,8 +110,8 @@ app.use('/assets', [
   express.static(__dirname + '/node_modules/bulma/'),
   express.static(__dirname + '/node_modules/moment/')
 ]);
-app.use(favicon(path.join(__dirname, 'favicon.ico')));
+app.use(favicon(path.join(__dirname, '/public/favicon.ico')));
 
-http.listen(port, () => {
+httpServer.listen(port, () => {
   console.log('Server listening on ' + port + ' ...');
 });
