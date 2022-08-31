@@ -50,13 +50,13 @@ app.post('/upload', (req: any, res: any) => {
 
   form.on('file', (formName: string, file: File) => {
     console.log('File received: ' + file);
-    if (file.originalFilename) {
-      console.log("file name: " + file.originalFilename);
+    if (file.name) {
+      console.log("file name: " + file.name);
     } else {
       return
     }
-    const oldPath = file.filepath;
-    const newPath = uploadsDir + file.originalFilename;
+    const oldPath = file.path;
+    const newPath = uploadsDir + file.name;
     fs.rename(oldPath, newPath, (err) => {
       if (err) {
         console.error(err);
