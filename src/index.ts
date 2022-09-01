@@ -3,7 +3,6 @@ import favicon from 'serve-favicon'
 import * as path from 'path'
 import {createServer, Server} from "http"
 import formidable, {File} from "formidable"
-import * as fs from "fs"
 import prettyBytes from 'pretty-bytes'
 import {Progress} from "./model/progress";
 import {ProgressWriter} from "./service/progress_writer";
@@ -13,6 +12,7 @@ import * as _ from "lodash";
 import yargs from "yargs";
 import {hideBin} from "yargs/helpers";
 import * as os from 'os';
+import mv from 'mv';
 
 const homedir = os.homedir();
 let port = 8082;
@@ -110,9 +110,13 @@ app.post('/upload', (req: any, res: any) => {
     const completed = new Date();
     const oldPath = file.path;
     const newPath = uploadsDir + file.name;
-    fs.rename(oldPath, newPath, (err) => {
+    mv(oldPath, newPath, {mkdirp: true}, (err) => {
+      // done. it first created all the necessary directories, and then
+      // tried fs.rename, then falls back to using ncp to copy the dir
+      // to dest and then rimraf to remove the source dir
       if (err) {
         console.error(err);
+        return;
       }
       console.log("File moved to: " + newPath);
     });

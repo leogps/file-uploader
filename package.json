@@ -11,6 +11,8 @@
     "postbuild": "npm run copy-files",
     "dev": "./node_modules/tsc-watch/index.js --project . --outDir ./dist --onSuccess \"nodemon\"",
     "start": "npm run postbuild && node dist/index.js",
+    "package": "node ./package-gzip.js",
+    "install": "npm run build && npm run package",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "nodemonConfig": {
@@ -39,16 +41,19 @@
     "jquery-blockui": "^2.7.0",
     "lodash.throttle": "^4.1.1",
     "moment": "^2.29.4",
+    "mv": "^2.1.1",
     "pretty-bytes": "^5.3.0",
     "rimraf": "^3.0.2",
     "serve-favicon": "^2.5.0",
     "socket.io": "^4.5.1",
+    "targz": "^1.0.1",
     "typescript": "^4.8.2",
     "uuid": "^8.3.2",
     "yargs": "^17.5.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.184",
+    "@types/mv": "^2.1.2",
     "@types/yargs": "^17.0.12",
     "concurrently": "^7.3.0",
     "copyfiles": "^2.4.1",
