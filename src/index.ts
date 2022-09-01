@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 import express, { Express, Request, Response } from 'express';
 import favicon from 'serve-favicon'
 import * as path from 'path'

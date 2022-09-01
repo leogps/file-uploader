@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "copy-files": "./node_modules/copyfiles/copyfiles --verbose --error --up 1 src/**/*.js src/**/*.css src/**/*.html src/**/*.ico src/**/*.jpg src/**/*.png dist/ && cp -r node_modules dist/",
-    "precompile": "tslint -c tslint.json -p tsconfig.json --fix",
+    "precompile": "eslint -c .eslintrc.js --fix --ext .ts src",
     "compile": "tsc",
     "build": "npm run compile",
     "postbuild": "npm run copy-files",
@@ -55,10 +55,15 @@
     "@types/lodash": "^4.14.184",
     "@types/mv": "^2.1.2",
     "@types/yargs": "^17.0.12",
+    "@typescript-eslint/eslint-plugin": "^5.36.1",
+    "@typescript-eslint/parser": "^5.36.1",
     "concurrently": "^7.3.0",
     "copyfiles": "^2.4.1",
+    "eslint": "^8.23.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jsdoc": "^39.3.6",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
     "nodemon": "^2.0.19",
-    "tsc-watch": "^5.0.3",
-    "tslint": "^6.1.3"
+    "tsc-watch": "^5.0.3"
   }
 }
