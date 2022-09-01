@@ -5,5 +5,8 @@ export interface Progress {
   bytesReceived?: number,
   bytesExpected?: number,
   bytesReceivedPretty?: string,
-  bytesExpectedPretty?: string
+  bytesExpectedPretty?: string,
+  fileName?: string,
+  savedLocation?: string,
+  completed?: Date
 }

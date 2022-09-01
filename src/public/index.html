@@ -5,21 +5,15 @@
     <title>File Uploader!</title>
 
     <link rel="stylesheet" href="/assets/css/bulma.min.css">
+    <link rel="stylesheet" href="/assets/toast.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
-    <h2>With Node.js <code>"File Uploader"</code> module</h2>
+    <h2>Hello, there from Node.js <code>"File Uploader"</code>, you know for file uploads.</h2>
     <section class="section">
         <div class="container">
             <form id="uploadForm" action="/upload" enctype="multipart/form-data" method="post">
-
-                <div class="field">
-                    <label class="label">Text field title</label>
-                    <div class="control">
-                        <input class="input" type="text" placeholder="Text input" name="title">
-                    </div>
-                </div>
 
                 <div class="field">
                     <label class="label">File</label>
@@ -42,7 +36,7 @@
 
     </section>
     Upload Progress:
-    <div class="container" id="progress-container">    
+    <div class="container" id="progress-container">
     </div>
     </section>
 
@@ -52,12 +46,13 @@
 <script src="/assets/jquery.min.js"></script>
 <script src="/assets/jquery.blockUI.js"></script>
 <script src="/assets/min/moment.min.js"></script>
+<script src="/assets/toast.min.js"></script>
 <script>
     var socket = io();
     socket.emit('message', "Connected.");
 
     socket.on('progresses', (progresses) => {
-        handleProgresses(progresses);        
+        handleProgresses(progresses);
     });
 
     jQuery(document).ready(function () {
@@ -100,10 +95,18 @@
                     });
                 },
                 success: function (data) {
-                    alert(JSON.stringify(data));
+                    //alert(JSON.stringify(data));
+                    new Toast({
+                        message: JSON.stringify(data),
+                        type: 'success'
+                    });
                 },
                 error: function (err, s) {
-                    alert("Error occurred: " + JSON.stringify(err) + ";; s: " + s);
+                    //alert("Error occurred: " + JSON.stringify(err) + ";; s: " + s);
+                    new Toast({
+                        message: "Error occurred: " + JSON.stringify(err) + ";; s: " + s,
+                        type: 'danger'
+                    });
                 },
                 complete: function () {
                     jQuery("form#uploadForm").trigger('reset');
@@ -131,7 +134,7 @@
             var labelId = 'progressLabel-' + progress.uuid;
             var $progressLabelElem = jQuery("#" + labelId);
             if ($progressLabelElem.length == 0) {
-                $progressLabelElem = jQuery("<label id='" + labelId + "' class='progress-label label'></label>");                
+                $progressLabelElem = jQuery("<label id='" + labelId + "' class='progress-label label'></label>");
                 $progressContainer.prepend($progressLabelElem);
             }
 
@@ -143,6 +146,21 @@
             var transferSummary = `Progress: (${progress.bytesReceivedPretty} / ${progress.bytesExpectedPretty})`;
             var timestampSummary = `Started: ${moment(progress.timestamp).format('MMMM Do YYYY, h:mm:ss a')}`;
             var progressSummary = `${transferSummary} | ${timestampSummary}`;
+
+            // if (progress.fileName) {
+            //     var fileNameSummary = `Name: ${progress.fileName}`;
+            //     progressSummary += ` | ${fileNameSummary}`;
+            // }
+            if (progress.savedLocation) {
+                var savedLocationSummary = `Location: ${progress.savedLocation}`;
+                progressSummary += ` | ${savedLocationSummary}`;
+            }
+            if (progress.completed) {
+                var timeTaken = parseFloat(moment(progress.completed).diff(progress.timestamp)/1000).toFixed(2);
+                var timeTakenSummary = `Time taken: ${timeTaken} sec`
+                progressSummary += ` | ${timeTakenSummary}`
+            }
+
             $progressLabelElem.text(progressSummary);
         });
     }

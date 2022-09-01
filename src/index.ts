@@ -10,13 +10,40 @@ import {ProgressWriter} from "./service/progress_writer";
 import * as socketio from "socket.io";
 import { v4 as uuidv4 } from 'uuid';
 import * as _ from "lodash";
+import yargs from "yargs";
+import {hideBin} from "yargs/helpers";
+import * as os from 'os';
 
+const homedir = os.homedir();
+let port = 8082;
+let uploadsDir = homedir + "/Downloads/uploads/"
+const argv: any = yargs(hideBin(process.argv))
+  .option('upload_location', {
+    alias: 'l',
+    type: 'string',
+    description: 'upload location',
+    default: uploadsDir
+  })
+  .option('port', {
+    alias: 'p',
+    type: 'number',
+    description: 'server port'
+  })
+  .help()
+  .argv
+
+if (argv.port) {
+  port = argv.port
+}
+if (argv.upload_location) {
+  uploadsDir = argv.upload_location
+}
+
+console.log("Upload location: " + uploadsDir)
+console.log("Server port: " + port)
 
 const app: Express = express();
 const httpServer: Server = createServer(app)
-const port = 8082;
-// const uploadsDir = "/home/pi/Downloads/uploads/"
-const uploadsDir = "/home/leogps/Downloads/uploads/"
 const io: socketio.Server = new socketio.Server(httpServer);
 const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10Gb
 
@@ -80,6 +107,7 @@ app.post('/upload', (req: any, res: any) => {
     } else {
       return
     }
+    const completed = new Date();
     const oldPath = file.path;
     const newPath = uploadsDir + file.name;
     fs.rename(oldPath, newPath, (err) => {
@@ -88,6 +116,15 @@ app.post('/upload', (req: any, res: any) => {
       }
       console.log("File moved to: " + newPath);
     });
+
+    if (uploadsProgressMap.has(uuid)) {
+      const existingProgress = uploadsProgressMap.get(uuid);
+      if (existingProgress) {
+        existingProgress.fileName = file.name;
+        existingProgress.savedLocation = newPath;
+        existingProgress.completed = completed;
+      }
+    }
   });
 
   form.parse(req, (err, fields, files) => {
@@ -131,7 +168,8 @@ app.use('/assets', [
   express.static(__dirname + '/node_modules/jquery-blockui/'),
   express.static(__dirname + '/node_modules/bulma/'),
   express.static(__dirname + '/node_modules/moment/'),
-  express.static(__dirname + '/node_modules/throttle-debounce/')
+  express.static(__dirname + '/node_modules/throttle-debounce/'),
+  express.static(__dirname + '/js/')
 ]);
 app.use(favicon(path.join(__dirname, '/public/favicon.ico')));
 
