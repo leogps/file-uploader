@@ -3,9 +3,10 @@ const webpack = require('webpack')
 
 const mode = process.env.NODE_ENV ? process.env.NODE_ENV : 'development'
 console.log("Mode chosen for webpack: " + mode)
+const devtool = mode === 'development' ? 'eval': 'source-map'
 const config = {
   mode: mode,
-  devtool: mode === 'development',
+  devtool: devtool,
   entry: './src-client/entrypoint.ts',
   module: {
     rules: [
