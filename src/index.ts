@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import express, { Express, Request, Response } from 'express';
-import favicon from 'serve-favicon'
-import * as path from 'path'
 import {createServer, Server} from "http"
 import formidable, {File} from "formidable"
 import prettyBytes from 'pretty-bytes'
@@ -148,7 +146,7 @@ app.post('/upload', (req: any, res: any) => {
 
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/client/public/index.html');
+  res.sendFile(__dirname + '/client/index.html');
 });
 
 app.get('/progresses', (req: Request, res: Response) => {
@@ -171,8 +169,7 @@ io.on('connection', (socket: socketio.Socket) => {
 
 app.use('/', [
   express.static(__dirname + '/client/')
-])
-app.use(favicon(path.join(__dirname, '/client/public/favicon.ico')));
+]);
 
 httpServer.listen(port, () => {
   console.log('Server listening on ' + port + ' ...');

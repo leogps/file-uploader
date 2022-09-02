@@ -4,15 +4,18 @@
   "description": "Facilitates file uploads.",
   "scripts": {
     "clean": "rimraf dist",
-    "copy-files": "./node_modules/copyfiles/copyfiles --verbose --error --up 1 src-client/**/*.html src-client/**/*.ico src-client/**/*.jpg src-client/**/*.png dist/client",
     "precompile": "eslint -c .eslintrc.js --fix --ext .ts src",
-    "compile": "./node_modules/webpack-cli/bin/cli.js --config webpack.config.js && ./node_modules/webpack-cli/bin/cli.js --config webpack-client.config.js",
-    "build": "npm run compile",
-    "postbuild": "npm run copy-files",
+    "compile-server": "./node_modules/webpack-cli/bin/cli.js --config webpack.config.js",
+    "compile-client-dev": "./node_modules/webpack-cli/bin/cli.js --config webpack-client.dev.js",
+    "compile-client-prod": "./node_modules/webpack-cli/bin/cli.js --config webpack-client.prod.js",
+    "compile-dev": "npm run precompile && npm run compile-server && npm run compile-client-dev",
+    "build-dev": "npm run compile-dev",
+    "compile-prod": "npm run precompile && npm run compile-server && npm run compile-client-prod",
+    "build-prod": "npm run compile-prod",
     "dev": "cross-env NODE_ENV=development ./node_modules/tsc-watch/index.js --project . --outDir ./dist --onSuccess \"nodemon\"",
-    "start": "npm run build && node dist/index.js",
+    "start": "npm run build-dev && node dist/index.js",
     "package": "node ./package-gzip.js",
-    "install": "cross-env NODE_ENV=production npm run build && npm run package",
+    "install": "cross-env NODE_ENV=production npm run build-prod && npm run package",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "nodemonConfig": {
@@ -62,13 +65,16 @@
     "@types/yargs": "^17.0.12",
     "@typescript-eslint/eslint-plugin": "^5.36.1",
     "@typescript-eslint/parser": "^5.36.1",
+    "clean-webpack-plugin": "^4.0.0",
     "concurrently": "^7.3.0",
-    "copyfiles": "^2.4.1",
     "css-loader": "^6.7.1",
+    "css-minimizer-webpack-plugin": "^4.0.0",
     "eslint": "^8.23.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-jsdoc": "^39.3.6",
     "eslint-plugin-prefer-arrow": "^1.2.3",
+    "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.6.1",
     "node-sass": "^7.0.1",
     "nodemon": "^2.0.19",
     "postcss-loader": "^7.0.1",
@@ -79,6 +85,7 @@
     "tsc-watch": "^5.0.3",
     "typescript": "^4.8.2",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0"
+    "webpack-cli": "^4.10.0",
+    "webpack-merge": "^5.8.0"
   }
 }
