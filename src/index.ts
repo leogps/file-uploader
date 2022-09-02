@@ -60,7 +60,7 @@ app.post('/upload', (req: any, res: any) => {
     multiples: true,
     maxFileSize: MAX_FILE_SIZE
   });
-  const timestamp = new Date();
+  const timestamp: number = new Date().getTime();
   const uuid = uuidv4();
   const progress: Progress = {
     uuid,
@@ -109,7 +109,7 @@ app.post('/upload', (req: any, res: any) => {
     } else {
       return
     }
-    const completed = new Date();
+    const completed = new Date().getTime();
     const oldPath = file.path;
     const newPath = uploadsDir + file.name;
     mv(oldPath, newPath, {mkdirp: true}, (err) => {
@@ -148,7 +148,7 @@ app.post('/upload', (req: any, res: any) => {
 
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(__dirname + '/client/public/index.html');
 });
 
 app.get('/progresses', (req: Request, res: Response) => {
@@ -169,15 +169,10 @@ io.on('connection', (socket: socketio.Socket) => {
   });
 });
 
-app.use('/assets', [
-  express.static(__dirname + '/node_modules/jquery/dist/'),
-  express.static(__dirname + '/node_modules/jquery-blockui/'),
-  express.static(__dirname + '/node_modules/bulma/'),
-  express.static(__dirname + '/node_modules/moment/'),
-  express.static(__dirname + '/node_modules/throttle-debounce/'),
-  express.static(__dirname + '/js/')
-]);
-app.use(favicon(path.join(__dirname, '/public/favicon.ico')));
+app.use('/', [
+  express.static(__dirname + '/client/')
+])
+app.use(favicon(path.join(__dirname, '/client/public/favicon.ico')));
 
 httpServer.listen(port, () => {
   console.log('Server listening on ' + port + ' ...');
