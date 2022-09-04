@@ -4,7 +4,7 @@
   "description": "Facilitates file uploads.",
   "scripts": {
     "clean": "rimraf dist",
-    "precompile": "eslint -c .eslintrc.js --fix --ext .ts src",
+    "precompile": "eslint -c .eslintrc.js --fix --ext .ts src src-client",
     "compile-server": "./node_modules/webpack-cli/bin/cli.js --config webpack.config.js",
     "compile-client-dev": "./node_modules/webpack-cli/bin/cli.js --config webpack-client.dev.js",
     "compile-client-prod": "./node_modules/webpack-cli/bin/cli.js --config webpack-client.prod.js",

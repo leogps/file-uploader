@@ -27,14 +27,14 @@ export class ProgressHandler {
 
       const progressId = 'progress-' + progress.uuid;
       let $progressElem = jQuery("progress#" + progressId);
-      if ($progressElem.length == 0) {
+      if ($progressElem.length === 0) {
         $progressElem = jQuery("<progress id='" + progressId + "' class='progress is-success' max='100' value='0'></progress>");
         $progressContainer.prepend($progressElem);
       }
 
       const labelId = 'progressLabel-' + progress.uuid;
       let $progressLabelElem = jQuery("#" + labelId);
-      if ($progressLabelElem.length == 0) {
+      if ($progressLabelElem.length === 0) {
         $progressLabelElem = jQuery("<label id='" + labelId + "' class='progress-label label'></label>");
         $progressContainer.prepend($progressLabelElem);
       }
@@ -44,9 +44,12 @@ export class ProgressHandler {
       $progressElem.attr("value", String(progress.bytesReceived));
       $progressElem.attr("max", String(progress.bytesExpected));
 
-      const transferSummary = `Progress: (${progress.bytesReceivedPretty} / ${progress.bytesExpectedPretty})`;
-      const timestampSummary = `Started: ${moment(progress.timestamp).format('MMMM Do YYYY, h:mm:ss a')}`;
-      let progressSummary = `${transferSummary} | ${timestampSummary}`;
+      let progressSummary = '';
+      if (progress.bytesReceivedPretty && progress.bytesExpectedPretty) {
+        const transferSummary = `Progress: (${progress.bytesReceivedPretty?.toString()} / ${progress.bytesExpectedPretty?.toString()})`;
+        const timestampSummary = `Started: ${moment(progress.timestamp).format('MMMM Do YYYY, h:mm:ss a')}`;
+        progressSummary += `${transferSummary} | ${timestampSummary}`;
+      }
 
       // if (progress.fileName) {
       //     var fileNameSummary = `Name: ${progress.fileName}`;
