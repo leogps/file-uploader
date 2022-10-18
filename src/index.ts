@@ -36,7 +36,7 @@ if (argv.port) {
   port = argv.port
 }
 if (argv.upload_location) {
-  uploadsDir = argv.upload_location
+  uploadsDir = argv.upload_location.endsWith('/') ? argv.upload_location: argv.upload_location + '/'
 }
 
 console.log("Upload location: " + uploadsDir)
@@ -56,7 +56,8 @@ app.post('/upload', (req: any, res: any) => {
   // parse a file upload
   const form = formidable({
     multiples: true,
-    maxFileSize: MAX_FILE_SIZE
+    maxFileSize: MAX_FILE_SIZE,
+    uploadDir: uploadsDir
   });
   const timestamp: number = new Date().getTime();
   const uuid = uuidv4();
