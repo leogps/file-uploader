@@ -45,7 +45,7 @@ console.log("Server port: " + port)
 const app: Express = express();
 const httpServer: Server = createServer(app)
 const io: socketio.Server = new socketio.Server(httpServer);
-const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10Gb
+const MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024; // 100Gb
 
 const progresses: Progress[] = [];
 const uploadsProgressMap: Map<string, Progress> = new Map<string, Progress>();
