@@ -1,6 +1,7 @@
 import prettyBytes from 'pretty-bytes'
 
 const TRANSFER_SAMPLE_FREQ = 1000; // 1second
+const MIN_SAMPLE_FREQ = TRANSFER_SAMPLE_FREQ / 4;
 
 export interface Progress {
   uuid?: any,
@@ -47,16 +48,28 @@ export class FileTransferProgress implements Progress {
   }
 
   markSample(): void {
-    const timestamp = new Date();
+    const timestampInMillis = new Date().getTime();
+    if (!this.shouldSample(timestampInMillis)) {
+      return;
+    }
+
     const bytesReceived = this.bytesReceived as number;
     this.transferSamples.push(
       {
         bytesReceived,
-        timestamp: timestamp.getTime()
+        timestamp: timestampInMillis
       }
     );
 
     this.cleanupSamples();
+  }
+
+  private shouldSample(millis: number): boolean {
+    if (this.transferSamples.length < 1) {
+      return true;
+    }
+    const lastSample = this.transferSamples[this.transferSamples.length - 1];
+    return (millis - lastSample.timestamp > MIN_SAMPLE_FREQ);
   }
 
   private cleanupSamples(): void {
@@ -67,11 +80,10 @@ export class FileTransferProgress implements Progress {
     if (!firstSample) {
       return;
     }
-    const firstSampleTimestamp: number = firstSample.timestamp as unknown as number;
+    const firstSampleTimestamp: number = firstSample.timestamp;
     const nowInMillis = new Date().getTime();
     if (firstSampleTimestamp - nowInMillis > TRANSFER_SAMPLE_FREQ) {
       this.transferSamples.shift();
     }
   }
-
 }

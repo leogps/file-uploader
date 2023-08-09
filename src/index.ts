@@ -72,7 +72,7 @@ app.post('/upload', (req: any, res: any) => {
     leading: true
   });
 
-  form.on('progress', (bytesReceived, bytesExpected) => {
+  const progressProcessorThrottled = _.throttle((bytesReceived, bytesExpected) => {
     console.log("Progress: (" + bytesReceived + "/" + bytesExpected + ")");
     if (uploadsProgressMap.has(uuid)) {
       const existingProgress = uploadsProgressMap.get(uuid);
@@ -88,7 +88,12 @@ app.post('/upload', (req: any, res: any) => {
       console.warn("Progress not found in the map for uuid: " + uuid);
       return;
     }
+  }, throttleWaitTimeInMillis, {
+    leading: true
+  });
 
+  form.on('progress', (bytesReceived, bytesExpected) => {
+    progressProcessorThrottled(bytesReceived, bytesExpected);
     if (progressWriter) {
       throttledBroadcaster();
     }
