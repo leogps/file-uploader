@@ -4,7 +4,7 @@ import express, { Express, Request, Response } from 'express';
 import {createServer, Server} from "http"
 import formidable, {File} from "formidable"
 import prettyBytes from 'pretty-bytes'
-import {Progress} from "./model/progress";
+import {FileTransferProgress, Progress} from "./model/progress";
 import {ProgressWriter} from "./service/progress_writer";
 import * as socketio from "socket.io";
 import { v4 as uuidv4 } from 'uuid';
@@ -61,15 +61,7 @@ app.post('/upload', (req: any, res: any) => {
   });
   const timestamp: number = new Date().getTime();
   const uuid = uuidv4();
-  const progress: Progress = {
-    uuid,
-    type: 'progress',
-    timestamp,
-    bytesReceived: 0,
-    bytesExpected: 0,
-    bytesReceivedPretty: prettyBytes(0),
-    bytesExpectedPretty: prettyBytes(0)
-  };
+  const progress: Progress = new FileTransferProgress(uuid, timestamp);
   uploadsProgressMap.set(uuid, progress);
   progresses.push(progress);
 
@@ -89,6 +81,7 @@ app.post('/upload', (req: any, res: any) => {
         existingProgress.bytesExpected = bytesExpected;
         existingProgress.bytesReceivedPretty = prettyBytes(bytesReceived);
         existingProgress.bytesExpectedPretty = prettyBytes(bytesExpected);
+        existingProgress.markSample();
       }
     } else {
       // This can't be.

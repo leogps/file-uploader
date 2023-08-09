@@ -1,6 +1,8 @@
 import { io } from "socket.io-client";
 import {Progress} from "../src/model/progress";
+import {ProgressUtils} from "../src/model/progress_utils";
 import moment from "moment";
+import prettyBytes from 'pretty-bytes'
 
 export class ProgressHandler {
   public registerHandler(): void {
@@ -65,6 +67,10 @@ export class ProgressHandler {
           .toFixed(2);
         const timeTakenSummary = `Time taken: ${timeTaken} sec`
         progressSummary += ` | ${timeTakenSummary}`
+      } else {
+        const transferRate = ProgressUtils.calculateTransferRate(progress);
+        const transferRateMsg = `Speed: ${prettyBytes(transferRate)}/sec`;
+        progressSummary += ` | ${transferRateMsg}`;
       }
 
       $progressLabelElem.text(progressSummary);
