@@ -13,6 +13,35 @@ jQuery(() => {
 
 class FormEventRegistrar {
   public registerEvents(): void {
+    this.registerFileInputEventHandler();
+    this.registerFormSubmissionEventHandler();
+  }
+
+  private registerFileInputEventHandler() {
+    const $fileDiv = jQuery("#file-div");
+    const $fileNameDiv = $fileDiv.find("#file-name");
+    const $fileInput = jQuery("form#uploadForm input[name='multipleFiles']");
+    $fileInput.on('change', () => {
+      this.onFilesChange($fileNameDiv, $fileInput);
+    });
+  }
+
+  private onFilesChange($fileNameDiv: JQuery<HTMLElement>, $fileInput: JQuery<HTMLElement>) {
+    $fileNameDiv.html('');
+    const files = $fileInput.prop('files');
+
+    if (files.length > 0) {
+      for (const file of files) {
+        const listItem = document.createElement("li");
+        listItem.textContent = file.name;
+        $fileNameDiv.append(listItem);
+      }
+    } else {
+      $fileNameDiv.html('No files selected.');
+    }
+  }
+
+  private registerFormSubmissionEventHandler() {
     console.log("Registering Form Event Handler...");
     jQuery("form#uploadForm").on('submit',  (event) => {
 
@@ -23,6 +52,20 @@ class FormEventRegistrar {
 
       const data = new FormData();
       const formElement: any = $('input[name="multipleFiles"]')[0];
+      if (formElement.files.length < 1) {
+        Toastify({
+          text: "Please select files to upload.",
+          duration: 3*1000, // toast forever.
+          close: true,
+          gravity: "top", // `top` or `bottom`
+          position: "right", // `left`, `center` or `right`
+          stopOnFocus: true, // Prevents dismissing of toast on hover
+          style: {
+            background: "linear-gradient(to right, #F39454, #FF6600)"
+          }
+        }).showToast();
+        return;
+      }
       $.each(formElement.files, (i, file) => {
         data.append('file-' + String(i), file);
       });
@@ -75,6 +118,12 @@ class FormEventRegistrar {
         },
         complete: () => {
           jQuery("form#uploadForm").trigger('reset');
+
+          const $fileDiv = jQuery("#file-div");
+          const $fileNameDiv = $fileDiv.find("#file-name");
+          const $fileInput = jQuery("form#uploadForm input[name='multipleFiles']");
+          this.onFilesChange($fileNameDiv, $fileInput);
+
           jQuery("form#uploadForm").unblock();
         }
       }).catch(() => {

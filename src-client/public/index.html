@@ -7,29 +7,36 @@
 
 </head>
 <body>
-  <h2>Hello, there from Node.js <code>"File Uploader"</code>, you know for file uploads.</h2>
-  <section class="section">
-    <div class="container">
+  <div class="content m-2">
+    <p class="m-2">Hello, there from file-uploader server.<code>"File Uploader"</code>, you know for file uploads.</p>
+    <div class="container is-one-third box">
       <form id="uploadForm" action="/upload" enctype="multipart/form-data" method="post">
-
-        <div class="field">
-          <label class="label">File</label>
-          <div class="control">
-            <input class="input" type="file" placeholder="File" name="multipleFiles" multiple="multiple">
-          </div>
+        <div id="file-div" class="field file has-name is-boxed column is-flex-grow-1">
+          <label class="file-label">
+            <input class="file-input" type="file" name="multipleFiles" multiple="multiple">
+            <span class="file-cta">
+              <span class="file-icon">
+                <i class="fas fa-upload"></i>
+              </span>
+              <span class="file-label">
+                Choose file(s)…
+              </span>
+            </span>
+            <span id="file-name" class="is-multiline"></span>
+          </label>
         </div>
 
-        <div class="control">
+        <div class="control field is-flex-grow-1">
           <button type="submit" class="button is-link">Submit</button>
         </div>
       </form>
     </div>
-  </section>
 
-  <section>
-  Upload Progress:
-  <div class="container" id="progress-container">
+    <section class="m-2">
+      <h4>Progress:</h4>
+      <div class="container" id="progress-container">
+      </div>
+    </section>
   </div>
-  </section>
 </body>
 </html>

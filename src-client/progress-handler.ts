@@ -4,7 +4,10 @@ import {ProgressUtils} from "../src/model/progress_utils";
 import moment from "moment";
 import prettyBytes from 'pretty-bytes'
 
+const progressDivCache: Map<string, JQuery<HTMLElement>> = new Map<string, JQuery<HTMLElement>>();
+
 export class ProgressHandler {
+
   public registerHandler(): void {
     console.log("Registering Progress Handler...");
     const socket = io();
@@ -28,20 +31,36 @@ export class ProgressHandler {
     jQuery.each(progresses, (index, progress) => {
 
       const progressId = 'progress-' + progress.uuid;
-      let $progressElem = jQuery("progress#" + progressId);
+      let $singleProgressContainer = progressDivCache.get(progressId);
+      if ($singleProgressContainer === undefined) {
+        $singleProgressContainer = jQuery(`
+          <div id="${progressId}" class="box single-progress-container"></div>
+        `);
+        $progressContainer.prepend($singleProgressContainer);
+        progressDivCache.set(progressId, $singleProgressContainer);
+      }
+
+      let $progressElem = $singleProgressContainer.find("progress#" + progressId);
       if ($progressElem.length === 0) {
-        $progressElem = jQuery("<progress id='" + progressId + "' class='progress is-success' max='100' value='0'></progress>");
-        $progressContainer.prepend($progressElem);
+        $progressElem = jQuery(`
+          <div>
+            <progress id='${progressId}' class='progress is-success' 
+              max='${String(progress.bytesExpected)}' value='${String(progress.bytesReceived)}'></progress>            
+          </div>
+        `);
+        $singleProgressContainer.prepend($progressElem);
       }
 
-      const labelId = 'progressLabel-' + progress.uuid;
-      let $progressLabelElem = jQuery("#" + labelId);
+      const labelId = `progressLabel-${progressId}`;
+      let $progressLabelElem = $singleProgressContainer.find(`#${labelId}`);
       if ($progressLabelElem.length === 0) {
-        $progressLabelElem = jQuery("<label id='" + labelId + "' class='progress-label label'></label>");
-        $progressContainer.prepend($progressLabelElem);
+        $progressLabelElem = jQuery(`
+          <label id='${labelId}' class='progress-label label'></label>
+        `);
+        $singleProgressContainer.prepend($progressLabelElem);
       }
 
-      console.log("Progress: (" + progress.bytesReceived + "/" + progress.bytesExpected + ")");
+      // console.log("Progress: (" + progress.bytesReceived + "/" + progress.bytesExpected + ")");
 
       $progressElem.attr("value", String(progress.bytesReceived));
       $progressElem.attr("max", String(progress.bytesExpected));
