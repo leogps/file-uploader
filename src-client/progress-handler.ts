@@ -43,10 +43,8 @@ export class ProgressHandler {
       let $progressElem = $singleProgressContainer.find("progress#" + progressId);
       if ($progressElem.length === 0) {
         $progressElem = jQuery(`
-          <div>
-            <progress id='${progressId}' class='progress is-success' 
-              max='${String(progress.bytesExpected)}' value='${String(progress.bytesReceived)}'></progress>            
-          </div>
+            <progress id='${progressId}' class='progress is-info is-small'
+              max='${String(progress.bytesExpected)}' value='${String(progress.bytesReceived)}'></progress>
         `);
         $singleProgressContainer.prepend($progressElem);
       }
