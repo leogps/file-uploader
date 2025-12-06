@@ -1,96 +1,100 @@
 import { io } from "socket.io-client";
-import {Progress} from "../src/model/progress";
-import {ProgressUtils} from "../src/model/progress_utils";
+import {FileTransferProgress} from "../src/model/progress";
+import { ProgressUtils } from "../src/model/progress_utils";
 import moment from "moment";
-import prettyBytes from 'pretty-bytes'
+import prettyBytes from "pretty-bytes";
 
-const progressDivCache: Map<string, JQuery<HTMLElement>> = new Map<string, JQuery<HTMLElement>>();
+const progressDivCache: Map<string, JQuery<HTMLElement>> = new Map();
 
 export class ProgressHandler {
 
-  public registerHandler(): void {
-    console.log("Registering Progress Handler...");
-    const socket = io();
-    socket.emit('message', "Connected.");
+    public registerHandler(): void {
+        console.log("Registering Progress Handler...");
+        const socket = io();
+        socket.emit("message", "Connected.");
 
-    socket.on('progresses', (progresses) => {
-      this.handleProgresses(progresses);
-    });
-    console.log("Registration complete.");
-  }
+        socket.on("progresses", (progresses: FileTransferProgress[]) => {
+            this.handleProgresses(progresses);
+        });
 
-  private handleProgresses(progresses: Progress[]): void {
-    console.log("Handling progresses....: " + progresses.length);
-    progresses.sort((a, b) => {
-      const bTimestamp: any = b.timestamp;
-      const aTimestamp: any = a.timestamp;
-      return bTimestamp - aTimestamp;
-    });
+        console.log("Progress handler registration complete.");
+    }
 
-    const $progressContainer = jQuery("div#progress-container");
-    jQuery.each(progresses, (index, progress) => {
+    private handleProgresses(progresses: FileTransferProgress[]): void {
+        const $progressContainer = jQuery("div#progress-container");
 
-      const progressId = 'progress-' + progress.uuid;
-      let $singleProgressContainer = progressDivCache.get(progressId);
-      if ($singleProgressContainer === undefined) {
-        $singleProgressContainer = jQuery(`
-          <div id="${progressId}" class="box single-progress-container"></div>
-        `);
-        $progressContainer.prepend($singleProgressContainer);
-        progressDivCache.set(progressId, $singleProgressContainer);
-      }
+        progresses.forEach(progress => {
+            const progressId = `progress-${progress.uuid}`;
+            const uploaded = (progress.uploadedChunks as any)?.length ?? 0;
+            const uploading = (progress.uploadingChunks as any)?.length ?? 0;
+            const totalChunks = progress.totalChunks ?? 1;
 
-      let $progressElem = $singleProgressContainer.find("progress#" + progressId);
-      if ($progressElem.length === 0) {
-        $progressElem = jQuery(`
-            <progress id='${progressId}' class='progress is-info is-small'
-              max='${String(progress.bytesExpected)}' value='${String(progress.bytesReceived)}'></progress>
-        `);
-        $singleProgressContainer.prepend($progressElem);
-      }
+            // Container box
+            let $box = progressDivCache.get(progressId);
+            if (!$box) {
+                $box = jQuery(`<div id="${progressId}" class="box single-progress-container"></div>`);
+                $progressContainer.prepend($box);
+                progressDivCache.set(progressId, $box);
+            }
 
-      const labelId = `progressLabel-${progressId}`;
-      let $progressLabelElem = $singleProgressContainer.find(`#${labelId}`);
-      if ($progressLabelElem.length === 0) {
-        $progressLabelElem = jQuery(`
-          <label id='${labelId}' class='progress-label label'></label>
-        `);
-        $singleProgressContainer.prepend($progressLabelElem);
-      }
+            // Main progress bar (bytes)
+            let $progressElem = $box.find(`progress#${progressId}`);
+            if (!$progressElem.length) {
+                $progressElem = jQuery(`<progress id="${progressId}" class="progress is-info is-small"></progress>`);
+                $box.prepend($progressElem);
+            }
+            $progressElem.attr("max", progress.bytesExpected!);
+            $progressElem.attr("value", progress.bytesReceived!);
 
-      // console.log("Progress: (" + progress.bytesReceived + "/" + progress.bytesExpected + ")");
+            // Add file name as a heading above the table
+            const labelId = `labelContainer-${progressId}`;
+            let $labelContainer = $box.find(`#${labelId}`);
+            if (!$labelContainer.length) {
+                $labelContainer = jQuery(`<div id="${labelId}" class="has-text-weight-bold" style="margin-top:5px;">
+                    ${progress.fileName}
+                </div>`);
+                $box.append($labelContainer);
+            }
 
-      $progressElem.attr("value", String(progress.bytesReceived));
-      $progressElem.attr("max", String(progress.bytesExpected));
+            const containerId = `progressTableContainer-${progressId}`;
+            let $tableContainer = $box.find(`#${containerId}`);
+            if (!$tableContainer.length) {
+                $tableContainer = jQuery(`<div id="${containerId}" class="table-container" style="margin-top:5px;"></div>`);
+                $box.append($tableContainer);
+            }
 
-      let progressSummary = '';
-      if (progress.bytesReceivedPretty && progress.bytesExpectedPretty) {
-        const transferSummary = `Progress: (${progress.bytesReceivedPretty?.toString()} / ${progress.bytesExpectedPretty?.toString()})`;
-        const timestampSummary = `Started: ${moment(progress.timestamp).format('MMMM Do YYYY, h:mm:ss a')}`;
-        progressSummary += `${transferSummary} | ${timestampSummary}`;
-      }
+            const tableId = `progressTable-${progressId}`;
+            let $table = $tableContainer.find(`#${tableId}`);
+            if (!$table.length) {
+                $table = jQuery(`<table id="${tableId}" class="table is-fullwidth is-bordered is-striped"></table>`);
+                $tableContainer.append($table);
+            }
 
-      // if (progress.fileName) {
-      //     var fileNameSummary = `Name: ${progress.fileName}`;
-      //     progressSummary += ` | ${fileNameSummary}`;
-      // }
-      if (progress.savedLocation) {
-        const savedLocationSummary = `Location: ${progress.savedLocation}`;
-        progressSummary += ` | ${savedLocationSummary}`;
-      }
-      if (progress.completed) {
-        const timeTaken = (moment(progress.completed)
-          .diff(progress.timestamp) / 1000)
-          .toFixed(2);
-        const timeTakenSummary = `Time taken: ${timeTaken} sec`
-        progressSummary += ` | ${timeTakenSummary}`
-      } else {
-        const transferRate = ProgressUtils.calculateTransferRate(progress);
-        const transferRateMsg = `Speed: ${prettyBytes(transferRate)}/sec`;
-        progressSummary += ` | ${transferRateMsg}`;
-      }
+            // Clear previous rows
+            $table.empty();
 
-      $progressLabelElem.text(progressSummary);
-    });
-  }
+            // Define table rows
+            const rows: [string, string][] = [
+                // ["File Name", progress.fileName || "-"],
+                // ["Location", progress.savedLocation || "-"],
+                ["Started", moment(progress.timestamp).format("MMMM Do YYYY, h:mm:ss a")],
+                ["Bytes Received", `${prettyBytes(progress.bytesReceived || 0)} / ${prettyBytes(progress.bytesExpected || 0)}`],
+                ["Chunks Uploaded", `${uploaded}/${totalChunks}`],
+                ["Chunks Verified", `${progress.chunkVerificationCount || 0}`],
+                ["Chunks Uploading", `${uploading}`],
+                ["Speed", `${prettyBytes(ProgressUtils.calculateTransferRate(progress))}/s`],
+                ["Last State", `${progress.lastState || "-"}`],
+            ];
+
+            if (progress.completed) {
+                const timeTaken = ((progress.completed - (progress.timestamp || 0)) / 1000).toFixed(2);
+                rows.push(["Completed in", `${timeTaken} sec`]);
+            }
+
+            // Append rows
+            for (const [key, value] of rows) {
+                $table.append(`<tr><th class="is-narrow">${key}</th><td>${value}</td></tr>`);
+            }
+        });
+    }
 }

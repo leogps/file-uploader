@@ -2,17 +2,16 @@
 
 import express, { Express, Request, Response } from 'express';
 import {createServer, Server} from "http"
-import formidable, {File} from "formidable"
-import prettyBytes from 'pretty-bytes'
-import {FileTransferProgress, Progress} from "./model/progress";
+import {router as uploadInitRouter} from "./routes/uploadInit";
+import {router as uploadChunkRouter} from "./routes/uploadChunk";
+import {router as uploadCompleteRouter} from "./routes/uploadComplete";
+import {router as uploadStatusRouter} from "./routes/uploadStatus";
 import {ProgressWriter} from "./service/progress_writer";
 import * as socketio from "socket.io";
-import { v4 as uuidv4 } from 'uuid';
-import * as _ from "lodash";
 import yargs from "yargs";
 import {hideBin} from "yargs/helpers";
 import * as os from 'os';
-import mv from 'mv';
+import {getProgressWriter, progresses, setProgressWriter, setUploadsDir} from "./globals";
 
 const homedir = os.homedir();
 let port = 8082;
@@ -38,6 +37,7 @@ if (argv.port) {
 if (argv.upload_location) {
   uploadsDir = argv.upload_location.endsWith('/') ? argv.upload_location: argv.upload_location + '/'
 }
+setUploadsDir(uploadsDir)
 
 console.log("Upload location: " + uploadsDir)
 console.log("Server port: " + port)
@@ -45,110 +45,21 @@ console.log("Server port: " + port)
 const app: Express = express();
 const httpServer: Server = createServer(app)
 const io: socketio.Server = new socketio.Server(httpServer);
-const MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024; // 100Gb
 
-const progresses: Progress[] = [];
-const uploadsProgressMap: Map<string, Progress> = new Map<string, Progress>();
-const progressWriter: ProgressWriter = new ProgressWriter(io);
-const throttleWaitTimeInMillis = 250;
+setProgressWriter(new ProgressWriter(io));
 
-app.post('/upload', (req: any, res: any) => {
-  // parse a file upload
-  const form = formidable({
-    multiples: true,
-    maxFileSize: MAX_FILE_SIZE,
-    uploadDir: uploadsDir
-  });
-  const timestamp: number = new Date().getTime();
-  const uuid = uuidv4();
-  const progress: Progress = new FileTransferProgress(uuid, timestamp);
-  uploadsProgressMap.set(uuid, progress);
-  progresses.push(progress);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/upload/init', uploadInitRouter);
+app.use('/upload/chunk', uploadChunkRouter);
+app.use('/upload/complete', uploadCompleteRouter);
+app.use('/upload/status', uploadStatusRouter);
 
-  const throttledBroadcaster = _.throttle(() => {
-    console.log("Broadcasting progresses...");
-    progressWriter.writeProgress(progresses);
-  }, throttleWaitTimeInMillis, {
-    leading: true
-  });
-
-  const progressProcessorThrottled = _.throttle((bytesReceived, bytesExpected) => {
-    console.log("Progress: (" + bytesReceived + "/" + bytesExpected + ")");
-    if (uploadsProgressMap.has(uuid)) {
-      const existingProgress = uploadsProgressMap.get(uuid);
-      if (existingProgress) {
-        existingProgress.bytesReceived = bytesReceived;
-        existingProgress.bytesExpected = bytesExpected;
-        existingProgress.bytesReceivedPretty = prettyBytes(bytesReceived);
-        existingProgress.bytesExpectedPretty = prettyBytes(bytesExpected);
-        existingProgress.markSample();
-      }
-    } else {
-      // This can't be.
-      console.warn("Progress not found in the map for uuid: " + uuid);
-      return;
-    }
-  }, throttleWaitTimeInMillis, {
-    leading: true
-  });
-
-  form.on('progress', (bytesReceived, bytesExpected) => {
-    progressProcessorThrottled(bytesReceived, bytesExpected);
-    if (progressWriter) {
-      throttledBroadcaster();
-    }
-  });
-
-  form.on('file', (formName: string, file: File) => {
-    console.log('File received: ' + file);
-    if (file.name) {
-      console.log("file name: " + file.name);
-    } else {
-      return
-    }
-    const completed = new Date().getTime();
-    const oldPath = file.path;
-    const newPath = uploadsDir + file.name;
-    mv(oldPath, newPath, {mkdirp: true}, (err) => {
-      // done. it first created all the necessary directories, and then
-      // tried fs.rename, then falls back to using ncp to copy the dir
-      // to dest and then rimraf to remove the source dir
-      if (err) {
-        console.error(err);
-        return;
-      }
-      console.log("File moved to: " + newPath);
-    });
-
-    if (uploadsProgressMap.has(uuid)) {
-      const existingProgress = uploadsProgressMap.get(uuid);
-      if (existingProgress) {
-        existingProgress.fileName = file.name;
-        existingProgress.savedLocation = newPath;
-        existingProgress.completed = completed;
-      }
-    }
-  });
-
-  form.parse(req, (err, fields, files) => {
-    res.writeHead(200, { 'content-type': 'application/json' });
-    console.log(files);
-    const success = {
-      "msg": 'File uploaded and moved!'
-    };
-    res.write(JSON.stringify(success));
-    res.end();
-  });
-
-  return;
-});
-
-
-app.get('/', (req, res) => {
+app.get('/', (_, res) => {
   res.sendFile(__dirname + '/client/index.html');
 });
 
-app.get('/progresses', (req: Request, res: Response) => {
+app.get('/progresses', (_: Request, res: Response) => {
   console.log("Progresses requested...");
   res.writeHead(200, { 'content-type': 'application/json' });
   res.write(JSON.stringify(progresses));
@@ -157,7 +68,8 @@ app.get('/progresses', (req: Request, res: Response) => {
 
 io.on('connection', (socket: socketio.Socket) => {
   console.log('a user connected');
-  socket.emit('progresses', progresses);
+  // socket.emit('progresses', progresses);
+  getProgressWriter().writeProgress(progresses);
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });

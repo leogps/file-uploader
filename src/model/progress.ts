@@ -3,6 +3,13 @@ import prettyBytes from 'pretty-bytes'
 const TRANSFER_SAMPLE_FREQ = 1000; // 1second
 const MIN_SAMPLE_FREQ = TRANSFER_SAMPLE_FREQ / 4;
 
+export enum UploadStatus {
+    INITIATED = "INITIATED",
+    UPLOADING = "UPLOADING",
+    COMPLETE = "COMPLETE",
+    FAILED = "FAILED"
+}
+
 export interface Progress {
   uuid?: any,
   type?: string,
@@ -14,14 +21,17 @@ export interface Progress {
   fileName?: string,
   savedLocation?: string,
   completed?: number,
+  lastState: UploadStatus,
   transferSamples?: TransferSample[]
 
   markSample(): void
 }
 
 export interface TransferSample {
-  bytesReceived: number,
-  timestamp: number
+    bytesReceived: number;      // total bytes received at this sample
+    timestamp: number;          // timestamp in ms
+    chunkIndex?: number;        // optional: index of chunk this sample refers to
+    chunkBytes?: number;        // optional: bytes in this chunk
 }
 
 export class FileTransferProgress implements Progress {
@@ -35,7 +45,14 @@ export class FileTransferProgress implements Progress {
   fileName?: string | undefined
   savedLocation?: string | undefined
   completed?: number | undefined
+  lastState: UploadStatus = UploadStatus.INITIATED;
   transferSamples: TransferSample[] = []
+
+  chunkSize?: number;            // size of each chunk
+  totalChunks?: number;          // total number of chunks
+  chunkVerificationCount: number = 0;
+  uploadedChunks: Set<number> = new Set(); // track uploaded chunk indices
+  uploadingChunks: Set<number> = new Set();
 
   constructor(uuid: string, timestamp: number) {
     this.uuid = uuid;
