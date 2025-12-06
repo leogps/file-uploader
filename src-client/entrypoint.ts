@@ -47,7 +47,8 @@ class FormEventRegistrar {
     }
 
     private registerFormSubmissionEventHandler() {
-        jQuery("form#uploadForm").on("submit", async (event) => {
+        const $uploadForm = jQuery("form#uploadForm");
+        $uploadForm.on("submit", async (event) => {
             event.preventDefault();
             const formElement: any = $('input[name="multipleFiles"]')[0];
             const files: FileList = formElement.files;
@@ -61,7 +62,7 @@ class FormEventRegistrar {
             }
 
             // Block form before uploading
-            jQuery("form#uploadForm").block({
+            $uploadForm.block({
                 message: '<h1>Uploading...</h1>',
                 css: { border: '3px solid #a00' }
             });
@@ -72,14 +73,14 @@ class FormEventRegistrar {
                 }
             } finally {
                 // Unblock and reset form after all files finish
-                jQuery("form#uploadForm").trigger("reset");
+                $uploadForm.trigger("reset");
 
                 const $fileDiv = jQuery("#file-div");
                 const $fileNameDiv = $fileDiv.find("#file-name");
                 const $fileInput = jQuery("form#uploadForm input[name='multipleFiles']");
                 this.onFilesChange($fileNameDiv, $fileInput);
 
-                jQuery("form#uploadForm").unblock();
+                $uploadForm.unblock();
             }
         });
     }
