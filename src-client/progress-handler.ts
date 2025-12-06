@@ -43,8 +43,8 @@ export class ProgressHandler {
                 $progressElem = jQuery(`<progress id="${progressId}" class="progress is-info is-small"></progress>`);
                 $box.prepend($progressElem);
             }
-            $progressElem.attr("max", progress.bytesExpected!);
-            $progressElem.attr("value", progress.bytesReceived!);
+            $progressElem.attr("max", (progress.bytesExpected || 100));
+            $progressElem.attr("value", (progress.bytesReceived || 0));
 
             // Add file name as a heading above the table
             const labelId = `labelContainer-${progressId}`;

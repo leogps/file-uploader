@@ -79,11 +79,12 @@ router.get('/', (req: Request, res: Response) => {
         console.log(`❌Hash mismatch for chunk ${chunkIndex} of file ${fileId} ${filePath}`);
     }
     progress.chunkVerificationCount++;
+    console.log(`Verification count: ${progress.chunkVerificationCount}`);
     throttledBroadcaster();
 
     res.json({
-        fileId: fileId,
-        chunkIndex: chunkIndex,
+        fileId,
+        chunkIndex,
         hashMatches: match,
         bytesReceived: progress.bytesReceived,
         bytesExpected: progress.bytesExpected

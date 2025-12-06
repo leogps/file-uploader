@@ -1,6 +1,6 @@
 import { sha1 } from "js-sha1";
 
-export async function computeSHA1(blob: Blob): Promise<string> {
+export const computeSHA1 = async (blob: Blob): Promise<string> => {
     if (window.crypto && crypto.subtle && crypto.subtle.digest) {
         try {
             const buffer = await blob.arrayBuffer();
@@ -16,4 +16,4 @@ export async function computeSHA1(blob: Blob): Promise<string> {
     const arrayBuffer = await blob.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     return sha1(bytes);
-}
+};

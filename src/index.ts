@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+
 
 import express, { Express, Request, Response } from 'express';
 import {createServer, Server} from "http"

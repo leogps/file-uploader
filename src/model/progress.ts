@@ -50,7 +50,7 @@ export class FileTransferProgress implements Progress {
 
   chunkSize?: number;            // size of each chunk
   totalChunks?: number;          // total number of chunks
-  chunkVerificationCount: number = 0;
+  chunkVerificationCount = 0;
   uploadedChunks: Set<number> = new Set(); // track uploaded chunk indices
   uploadingChunks: Set<number> = new Set();
 

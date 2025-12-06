@@ -70,8 +70,9 @@ router.post('/', (req: Request, res: Response) => {
 
     progress.chunkVerificationCount = 0;
     progress.uploadingChunks = new Set<number>();
+    console.log(`Verification count: ${progress.chunkVerificationCount}`);
     res.json({
-        fileId: fileId,
+        fileId,
         chunkSize: progress.chunkSize,
         totalChunks: progress.totalChunks,
         maxParallel: MAX_PARALLEL_CHUNK_UPLOADS,

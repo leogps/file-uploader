@@ -27,7 +27,7 @@ export class ProgressWriter {
             cloned.uploadingChunks = p.uploadingChunks instanceof Set ? Array.from(p.uploadingChunks)
                 : Array.isArray(p.uploadingChunks) ? p.uploadingChunks : [];
 
-            return cloned;
+            return cloned as FileTransferProgress;
         });
 
         // Emit to all connected clients

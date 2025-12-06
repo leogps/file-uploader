@@ -48,40 +48,54 @@ class FormEventRegistrar {
 
     private registerFormSubmissionEventHandler() {
         const $uploadForm = jQuery("form#uploadForm");
-        $uploadForm.on("submit", async (event) => {
+        $uploadForm.on("submit", (event) => {
             event.preventDefault();
-            const formElement: any = $('input[name="multipleFiles"]')[0];
-            const files: FileList = formElement.files;
-            if (!files || files.length === 0) {
-                Toastify({
-                    text: "Please select files",
-                    duration: 3000,
-                    close: true
-                }).showToast();
-                return;
-            }
 
-            // Block form before uploading
-            $uploadForm.block({
-                message: '<h1>Uploading...</h1>',
-                css: { border: '3px solid #a00' }
-            });
+            // wrap async logic in an IIFE
+            (async () => {
+                const formElement: any = $('input[name="multipleFiles"]')[0];
+                const files: FileList = formElement.files;
 
-            try {
-                for (const file of Array.from(files)) {
-                    await this.uploadFile(file);
+                if (!files || files.length === 0) {
+                    Toastify({
+                        text: "Please select files",
+                        duration: 3000,
+                        close: true
+                    }).showToast();
+                    return;
                 }
-            } finally {
-                // Unblock and reset form after all files finish
-                $uploadForm.trigger("reset");
 
-                const $fileDiv = jQuery("#file-div");
-                const $fileNameDiv = $fileDiv.find("#file-name");
-                const $fileInput = jQuery("form#uploadForm input[name='multipleFiles']");
-                this.onFilesChange($fileNameDiv, $fileInput);
+                // Block form before uploading
+                $uploadForm.block({
+                    message: '<h1>Uploading...</h1>',
+                    css: { border: '3px solid #a00' }
+                });
 
-                $uploadForm.unblock();
-            }
+                try {
+                    // Upload all files sequentially
+                    for (const file of Array.from(files)) {
+                        await this.uploadFile(file);
+                    }
+                } finally {
+                    // Unblock and reset form after all files finish
+                    $uploadForm.trigger("reset");
+
+                    const $fileDiv = jQuery("#file-div");
+                    const $fileNameDiv = $fileDiv.find("#file-name");
+                    const $fileInput = jQuery("form#uploadForm input[name='multipleFiles']");
+                    this.onFilesChange($fileNameDiv, $fileInput);
+
+                    $uploadForm.unblock();
+                }
+            })().catch(err => {
+                console.error("Error during upload:", err);
+                Toastify({
+                    text: `Upload error: ${err}`,
+                    duration: -1,
+                    close: true,
+                    style: { background: "linear-gradient(to right, #F39454, #FF6600)" }
+                }).showToast();
+            });
         });
     }
 
@@ -130,7 +144,7 @@ class FormEventRegistrar {
 
             // Loop through chunks and dynamically manage pool
             for (let i = 0; i < totalChunks; i++) {
-                const taskPromise = uploadChunkTask(i)
+                const taskPromise: Promise<void> = uploadChunkTask(i)
                     .finally(() => {
                         const index = pool.indexOf(taskPromise);
                         if (index > -1) {
@@ -147,7 +161,9 @@ class FormEventRegistrar {
 
                 // If pool is full, wait for at least one to finish
                 if (pool.length >= maxParallel) {
-                    await Promise.race(pool).catch(() => {}); // don't block other tasks
+                    await Promise.race(pool).catch((err) => {
+                        console.warn(`Pool full, but one task failed, err: ${err}`);
+                    }); // don't block other tasks
                 }
             }
 
@@ -185,7 +201,7 @@ class FormEventRegistrar {
                 }).showToast();
             }
 
-        } catch (err) {
+        } catch (err: any) {
             console.error(`Error uploading file ${file.name}:`, err);
             Toastify({
                 text: `Error uploading file ${file.name}, ${err}`,

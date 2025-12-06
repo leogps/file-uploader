@@ -10,8 +10,8 @@ export const uploadsProgressMap: Map<string, Progress> = new Map();
 let progressWriter: ProgressWriter;
 export const throttleWaitTimeInMillis = 250;
 
-export function setUploadsDir(dir: string) { uploadsDir = dir; }
-export function getUploadsDir() { return uploadsDir; }
+export const setUploadsDir = (dir: string) => { uploadsDir = dir; };
+export const getUploadsDir = () => uploadsDir;
 
 export const setProgressWriter = (writer: ProgressWriter) => {
     progressWriter = writer;
