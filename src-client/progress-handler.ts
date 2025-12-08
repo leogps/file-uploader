@@ -108,6 +108,13 @@ export class ProgressHandler {
             for (const [key, value] of rows) {
                 $table.append(`<tr><th class="is-narrow">${key}</th><td>${value}</td></tr>`);
             }
+
+            const horizontalRulerId = `horizontalRuler-${progressId}`;
+            let $horizontalRuler = $panel.find(`#${horizontalRulerId}`);
+            if (!$horizontalRuler.length) {
+                $horizontalRuler = jQuery(`<hr id="${horizontalRulerId}" class="is-one-third mt-3 mb-1">`);
+                $panel.append($horizontalRuler);
+            }
         });
     }
 }
