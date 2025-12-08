@@ -7,12 +7,14 @@ export const router = Router();
 // POST /upload/complete?fileId=UUID
 router.post('/', (req: Request, res: Response) => {
     const fileId = req.query.fileId as string;
+    const markUploadFailed: boolean = req.query.markUploadFailed === "true";
 
     if (!fileId || !uploadsProgressMap.has(fileId)) {
         return res.status(400).json({ msg: 'Invalid or unknown fileId' });
     }
 
     const progress: FileTransferProgress = uploadsProgressMap.get(fileId)! as FileTransferProgress;
+    progress.lastState = UploadStatus.FINISHING;
 
     // Ensure uploadedChunks and totalChunks exist
     if (!progress.uploadedChunks) {
@@ -24,7 +26,11 @@ router.post('/', (req: Request, res: Response) => {
 
     // Check all chunks uploaded
     if (progress.uploadedChunks.size !== progress.totalChunks) {
-        progress.lastState = UploadStatus.FAILED;
+        if (markUploadFailed) {
+            console.log(`Marking upload failed for file ${progress.fileName} ${progress.uuid}`);
+            progress.lastState = UploadStatus.FAILED;
+        }
+        getProgressWriter().writeProgress(progresses);
         return res.status(400).json({
             msg: 'File incomplete',
             uploadedChunks: Array.from(progress.uploadedChunks),

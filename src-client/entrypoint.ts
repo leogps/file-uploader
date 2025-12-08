@@ -172,8 +172,16 @@ class FormEventRegistrar {
 
             // Complete upload
             let completeData: any = null;
+            let markUploadFailed = false;
             for (let attempt = 1; attempt <= MAX_COMPLETE_CHECK_RETRIES; attempt++) {
-                const completeResp = await fetch(`/upload/complete?fileId=${fileId}`, { method: "POST" });
+                markUploadFailed = attempt === MAX_COMPLETE_CHECK_RETRIES;
+                if (markUploadFailed) {
+                    console.warn(`Marking upload as failed after ${attempt} retries...`);
+                }
+                const completeResp = await fetch(`/upload/complete?fileId=${fileId}&markUploadFailed=${markUploadFailed}`,
+                {
+                    method: "POST"
+                });
                 completeData = await completeResp.json();
 
                 if (completeResp.ok && completeData.msg !== 'File incomplete') {
