@@ -5,6 +5,10 @@ import moment from "moment";
 import prettyBytes from "pretty-bytes";
 
 const progressDivCache: Map<string, JQuery<HTMLElement>> = new Map();
+const progressBarStateColorMap: Record<"COMPLETE" | "FAILED", string> = {
+    COMPLETE: "is-success",
+    FAILED: "is-danger",
+};
 
 export class ProgressHandler {
 
@@ -40,11 +44,16 @@ export class ProgressHandler {
             // Main progress bar (bytes)
             let $progressElem = $box.find(`progress#${progressId}`);
             if (!$progressElem.length) {
-                $progressElem = jQuery(`<progress id="${progressId}" class="progress is-info is-small"></progress>`);
+                $progressElem = jQuery(`<progress id="${progressId}" class="progress is-info is-small">`);
                 $box.prepend($progressElem);
             }
             $progressElem.attr("max", (progress.bytesExpected || 100));
             $progressElem.attr("value", (progress.bytesReceived || 0));
+            const key = progress.lastState as keyof typeof progressBarStateColorMap;
+            const stateColor = progressBarStateColorMap[key] || "";
+            // Remove existing Bulma progress colors
+            $progressElem.removeClass("is-success is-danger is-info is-warning");
+            $progressElem.addClass(stateColor || "is-info");
 
             // Add file name as a heading above the table
             const labelId = `labelContainer-${progressId}`;
