@@ -8,12 +8,46 @@ const MAX_COMPLETE_CHECK_RETRIES = 20;
 const COMPLETE_CHECK_RETRY_DELAY_MS = 1000;
 
 jQuery(() => {
+    const themeSelectionRegistrar = new ThemeSelectionRegistrar();
+    themeSelectionRegistrar.registerEvents();
+
     const progressHandler = new ProgressHandler();
     progressHandler.registerHandler();
 
     const formRegistrar = new FormEventRegistrar();
     formRegistrar.registerEvents();
 });
+
+class ThemeSelectionRegistrar {
+    public registerEvents(): void {
+        const $themeToggle = $('#themeToggle');
+        const $themeIcon = $('#themeIcon');
+        const $htmlEl = $('html');
+
+        const applyTheme = (theme: string) => {
+            $htmlEl.attr('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            $themeIcon.removeClass('fa-sun fa-moon');
+            $themeIcon.addClass(theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon');
+        };
+
+        // Detect saved theme or system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            applyTheme(savedTheme);
+        } else {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(prefersDark ? 'dark' : 'light');
+        }
+
+        // Toggle on click
+        $themeToggle.on('click', () => {
+            const currentTheme = $htmlEl.attr('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+    }
+}
 
 class FormEventRegistrar {
     public registerEvents(): void {

@@ -8,16 +8,27 @@
 </head>
 <body>
   <div class="content m-2">
-    <div class="container">
-        <p class="m-2 is-one-third box">
-            <div>
-                Hello there from file-uploader server.
-            </div>
-            <div>
-                <code class="">File Uploader,</code> you know for file uploads.
-            </div>
-        </p>
-    </div>
+      <div class="fixed-grid container has-4-columns mt-4">
+          <div class="grid">
+              <div class="cell is-col-span-2">
+                  <section>
+                      <div>
+                          Hello there from file-uploader server.
+                      </div>
+                      <div>
+                          <code class="">File Uploader,</code> you know for file uploads.
+                      </div>
+                  </section>
+              </div>
+              <div class="cell is-col-from-end-1">
+                  <section class="mt-4 m-2 is-pulled-right mr-6">
+                      <div class="is-position-absolute bulma-is-fixed-top is-clickable" id="themeToggle">
+                          <i class="fas fa-moon" id="themeIcon"></i>
+                      </div>
+                  </section>
+              </div>
+          </div>
+      </div>
     <div class="container is-one-third box">
       <form id="uploadForm" action="/upload" enctype="multipart/form-data" method="post">
         <div id="file-div" class="field file has-name is-boxed column is-flex-grow-1">
@@ -31,8 +42,8 @@
                 Choose file(s)…
               </span>
             </span>
-            <span id="file-name" class="is-multiline"></span>
           </label>
+          <div id="file-name" class="mt-1 wrap-text is-multiline"></div>
         </div>
 
         <div class="control field is-flex-grow-1">

@@ -1,3 +1,71 @@
 @import "bulma/css/bulma.min.css";
+@import "bulma/sass/themes/light";
+@import "bulma/sass/themes/dark";
 @import "toastify-js/src/toastify.css";
 @import "@fortawesome/fontawesome-free/css/all.min.css";
+
+:root {
+  --file-item-hover-bg: rgba(0, 0, 0, 0.05); // light theme default
+  --file-item-border-color: #9e9e9e;
+  --file-item-icon-color: #9e9e9e;
+}
+
+[data-theme="dark"] {
+  --file-item-hover-bg: rgba(255, 255, 255, 0.1); // dark theme
+  --file-item-border-color: #6e6e6e;
+  --file-item-icon-color: #b0b0b0;
+}
+
+#file-name.wrap-text {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+#file-name ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 1rem;
+}
+
+#file-name li {
+  position: relative;
+  padding-left: 1.5em;
+  margin-bottom: 0.25em;
+  border-bottom: 1px solid var(--file-item-border-color);
+  transition: background-color 0.2s ease;
+}
+
+#file-name li:first-child {
+  border-top: 1px solid var(--file-item-border-color);
+}
+
+#file-name li:hover {
+  background-color: var(--file-item-hover-bg);
+  cursor: pointer;
+}
+
+#file-name li::before {
+  content: "\f15b";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  position: absolute;
+  left: 0;
+  color: var(--file-item-icon-color);
+}
+
+.progress-panel {
+  border-radius: var(--bulma-panel-radius, 6px);
+  box-shadow: var(--bulma-panel-shadow, 0 2px 3px rgba(10, 10, 10, 0.1));
+}
+
+.panel-heading.wrap-text {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.progress.is-small {
+  height: 0.25rem;
+  margin-bottom: 0;
+}
