@@ -8,18 +8,21 @@ const MAX_COMPLETE_CHECK_RETRIES = 20;
 const COMPLETE_CHECK_RETRY_DELAY_MS = 1000;
 
 jQuery(() => {
-    const themeSelectionRegistrar = new ThemeSelectionRegistrar();
-    themeSelectionRegistrar.registerEvents();
-
     const progressHandler = new ProgressHandler();
     progressHandler.registerHandler();
 
-    const formRegistrar = new FormEventRegistrar();
-    formRegistrar.registerEvents();
+    const pageEventRegistrar = new PageEventRegistrar();
+    pageEventRegistrar.registerEvents();
 });
 
-class ThemeSelectionRegistrar {
+class PageEventRegistrar {
     public registerEvents(): void {
+        this.registerThemeSelectionEventHandler();
+        this.registerFileInputEventHandler();
+        this.registerFormSubmissionEventHandler();
+    }
+
+    private registerThemeSelectionEventHandler() {
         const $themeToggle = $('#themeToggle');
         const $themeIcon = $('#themeIcon');
         const $htmlEl = $('html');
@@ -46,13 +49,6 @@ class ThemeSelectionRegistrar {
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             applyTheme(newTheme);
         });
-    }
-}
-
-class FormEventRegistrar {
-    public registerEvents(): void {
-        this.registerFileInputEventHandler();
-        this.registerFormSubmissionEventHandler();
     }
 
     private registerFileInputEventHandler() {

@@ -151,7 +151,7 @@ export class FileTransferProgress implements Progress {
             return;
         }
         if (this.uploadedChunks.has(chunkIndex)) {
-            console.warn(`Chunk index ${chunkIndex} already marked as uploaded.`);
+            console.warn(`Chunk index ${chunkIndex} already marked as uploaded for ${this.fileName}.`);
             return;
         }
 
@@ -163,8 +163,9 @@ export class FileTransferProgress implements Progress {
         this.uploadedChunks = new Set();
     }
 
-    public chunkVerified(_: number): void {
+    public chunkVerified(chunkIndex: number): void {
         this.chunkVerificationCount++;
+        console.debug(`chunk ${chunkIndex} verified. Total verified: ${this.chunkVerificationCount} for ${this.fileName}.`)
     }
 
     /** Optional: reset */

@@ -9,8 +9,6 @@ import {
     throttledBroadcaster
 } from "../globals";
 import { FileTransferProgress } from "../model/progress";
-import prettyBytes from "pretty-bytes";
-import {chunk} from "lodash";
 
 export const router = Router();
 

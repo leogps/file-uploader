@@ -33,8 +33,8 @@ export class ProgressHandler {
             const uploading = (progress.uploadingChunks as any)?.length ?? 0;
             const totalChunks = progress.totalChunks ?? 1;
 
-            const key = progress.lastState as keyof typeof stateColorMap;
-            const stateColor = stateColorMap[key] || "";
+            const colorKey = progress.lastState as keyof typeof stateColorMap;
+            const stateColor = stateColorMap[colorKey] || "";
 
             // Container box
             let $panel = progressDivCache.get(progressId);
