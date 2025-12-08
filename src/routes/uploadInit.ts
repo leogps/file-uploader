@@ -51,26 +51,28 @@ router.post('/', (req: Request, res: Response) => {
             progress.chunkSize = 5 * 1024 * 1024;
             progress.totalChunks = Math.ceil(fileSize / progress.chunkSize);
             progress.bytesReceived = fs.statSync(finalPath).size; // resume
-            progress.uploadedChunks = new Set<number>();
+            progress.resetUploadedChunks();
             uploadsProgressMap.set(fileId, progress);
             progresses.push(progress);
         }
     } else {
         // File does not exist, create new progress
+        console.log(`creating file ${finalPath}`);
+        fs.writeFileSync(finalPath, Buffer.alloc(0));
         fileId = uuidv4();
         progress = new FileTransferProgress(fileId, Date.now());
         progress.fileName = fileName;
         progress.bytesExpected = fileSize;
         progress.chunkSize = MAX_CHUNK_SIZE;
         progress.totalChunks = Math.ceil(fileSize / progress.chunkSize);
-        progress.uploadedChunks = new Set<number>();
+        progress.resetUploadedChunks();
         uploadsProgressMap.set(fileId, progress);
         progresses.push(progress);
     }
+    progress.savedLocation = finalPath;
 
-    progress.chunkVerificationCount = 0;
+    progress.resetVerificationCount();
     progress.uploadingChunks = new Set<number>();
-    console.log(`Verification count: ${progress.chunkVerificationCount}`);
     res.json({
         fileId,
         chunkSize: progress.chunkSize,

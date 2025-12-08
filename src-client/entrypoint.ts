@@ -164,6 +164,7 @@ class FormEventRegistrar {
                     `/upload/status?fileId=${fileId}&chunkIndex=${chunkIndex}&chunkSize=${chunkSize}&hash=${chunkHash}`
                 );
                 const statusData = await statusResp.json();
+                console.log(`chunk-status for index ${chunkIndex}: hash-matches? ${statusData.hashMatches}`);
 
                 if (statusData.hashMatches) {
                     // already uploaded

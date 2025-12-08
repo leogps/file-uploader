@@ -67,19 +67,16 @@ router.get('/', (req: Request, res: Response) => {
     const match = hash === clientHash;
     if (match) {
         if (!progress.uploadedChunks) {
-            progress.uploadedChunks = new Set<number>();
+            progress.resetUploadedChunks();
         }
-        progress.uploadedChunks.add(chunkIndex);
-        progress.bytesReceived = progress.uploadedChunks.size * progress.chunkSize!;// account for last chunk size?
-        progress.bytesReceivedPretty = prettyBytes(progress.bytesReceived || 0);
-        progress.bytesExpectedPretty = prettyBytes(progress.bytesExpected || 0);
-        console.log(`✅Hash match for chunk ${chunkIndex} of file ${fileId} ${filePath}`);
+        progress.addUploadedChunk(chunkIndex);
+        console.log(`✅ Hash match for chunk ${chunkIndex} of file ${fileId} ${filePath}`);
     } else {
         progress.uploadingChunks.add(chunkIndex);
-        console.log(`❌Hash mismatch for chunk ${chunkIndex} of file ${fileId} ${filePath}`);
+        console.log(`❌ Hash mismatch for chunk ${chunkIndex} of file ${fileId} ${filePath}`);
     }
-    progress.chunkVerificationCount++;
-    console.log(`Verification count: ${progress.chunkVerificationCount}`);
+    progress.chunkVerified(chunkIndex);
+    console.log(`verified-chunk: ${chunkIndex}, verification-count: ${progress.chunkVerificationCount} for ${progress.fileName}`);
     throttledBroadcaster();
 
     res.json({

@@ -10,6 +10,7 @@ import {
 } from "../globals";
 import { FileTransferProgress } from "../model/progress";
 import prettyBytes from "pretty-bytes";
+import {chunk} from "lodash";
 
 export const router = Router();
 
@@ -81,11 +82,7 @@ router.post("/", (req: Request, res: Response) => {
                         };
                     } else {
                         progress.uploadingChunks.delete(chunkIndex);
-                        progress.uploadedChunks.add(chunkIndex);
-                        progress.bytesReceived = progress.uploadedChunks.size * progress.chunkSize!;// account for last chunk size?
-                        progress.bytesReceivedPretty = prettyBytes(progress.bytesReceived || 0);
-                        progress.bytesExpectedPretty = prettyBytes(progress.bytesExpected || 0);
-                        progress.savedLocation = finalPath;
+                        progress.addUploadedChunk(chunkIndex);
                         progress.markSample();
                     }
                     throttledBroadcaster();
@@ -115,6 +112,7 @@ router.post("/", (req: Request, res: Response) => {
                 return res.status(400).json({ msg: "No chunk received" });
             }
 
+            console.log(`uploaded-chunk: ${chunkIndex} for ${progress.fileName}`);
             return res.json({
                 msg: "Chunk uploaded successfully",
                 fileId,

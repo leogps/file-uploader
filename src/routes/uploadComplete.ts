@@ -18,7 +18,7 @@ router.post('/', (req: Request, res: Response) => {
 
     // Ensure uploadedChunks and totalChunks exist
     if (!progress.uploadedChunks) {
-        progress.uploadedChunks = new Set<number>();
+        progress.resetUploadedChunks();
     }
     if (!progress.totalChunks && progress.chunkSize && progress.bytesExpected) {
         progress.totalChunks = Math.ceil(progress.bytesExpected / progress.chunkSize);
