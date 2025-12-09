@@ -8,12 +8,20 @@
   --file-item-hover-bg: rgba(0, 0, 0, 0.05); // light theme default
   --file-item-border-color: #9e9e9e;
   --file-item-icon-color: #9e9e9e;
+
+  --upload-block-modal-bg: #ffffff;
 }
 
 [data-theme="dark"] {
   --file-item-hover-bg: rgba(255, 255, 255, 0.1); // dark theme
   --file-item-border-color: #6e6e6e;
   --file-item-icon-color: #b0b0b0;
+
+  --upload-block-modal-bg: #1e1e1e;
+}
+
+h1.upload-block-modal {
+ background-color: var(--upload-block-modal-bg);
 }
 
 #file-name.wrap-text {
@@ -68,4 +76,12 @@
 .progress.is-small {
   height: 0.25rem;
   margin-bottom: 0;
+}
+
+.panel-heading a.progress-detail-control .panel-icon {
+  vertical-align: middle;
+}
+
+.panel-heading a.progress-detail-control .fas {
+  color: blue;
 }

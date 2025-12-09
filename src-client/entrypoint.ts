@@ -97,8 +97,7 @@ class PageEventRegistrar {
 
                 // Block form before uploading
                 $uploadForm.block({
-                    message: '<h1>Uploading...</h1>',
-                    css: { border: '3px solid #a00' }
+                    message: '<h1 class="upload-block-modal p-2 m-0">Uploading...</h1>'
                 });
 
                 try {
