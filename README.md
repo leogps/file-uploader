@@ -1,4 +1,4 @@
-# @leogps/file-Uploader
+# @leogps/file-uploader
 
 Zero-config command-line tool to run a file-uploader server. Files can be uploaded typically from a browser.
 
