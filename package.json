@@ -3,6 +3,10 @@
   "version": "2.0.0",
   "description": "Facilitates file uploader server.",
   "main": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leogps/file-uploader"
+  },
   "bin": {
     "file-uploader": "./dist/index.js"
   },
@@ -42,7 +46,10 @@
     "client"
   ],
   "author": "Paul Gundarapu",
-  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leogps/file-uploader/issues"
+  },
+  "license": "MIT",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.4",
     "bulma": "^1.0.4",
