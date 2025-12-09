@@ -6,15 +6,14 @@ const devtool = mode === 'development' ? 'eval': 'nosources-source-map'
 module.exports = {
   mode: mode,
   devtool: devtool,
-  externals: {
-    formidable: 'commonjs formidable',
-    bufferutil: 'commonjs bufferutil',
-    'utf-8-validate': 'commonjs utf-8-validate',
-  },
   entry: {
     'index': './src/index.ts',
   },
   target: 'node',
+  node: {
+    __dirname: false,
+    __filename: false
+  },
   module: {
     rules: [
       {

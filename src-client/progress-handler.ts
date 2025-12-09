@@ -93,9 +93,8 @@ export class ProgressHandler {
     }
 
     private registerDetailToggleEventHandler($panel: JQuery, tableContainerId: string) {
-        const _this = this;
-        $panel.on("click", ".progress-detail-control", function () {
-            const $btn = jQuery(this);
+        $panel.on("click", ".progress-detail-control", (event) => {
+            const $btn = jQuery(event.currentTarget);
 
             const $tableContainer = jQuery(`#${tableContainerId}`);
 
@@ -121,7 +120,9 @@ export class ProgressHandler {
                 $icon.removeClass("fa-minus-circle").addClass("fa-plus-circle");
                 $icon.attr("title", "expand");
             }
-            _this.updateCollapseAllVisibility();
+
+            // no need for _this alias
+            this.updateCollapseAllVisibility();
         });
     }
 

@@ -1,6 +1,6 @@
 {
   "name": "file-uploader",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Facilitates file uploads.",
   "scripts": {
     "clean": "rimraf dist file-uploader.tar.gz",
