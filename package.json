@@ -1,6 +1,6 @@
 {
   "name": "@leogps/file-uploader",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Facilitates file uploader server.",
   "main": "src/index.ts",
   "repository": {
