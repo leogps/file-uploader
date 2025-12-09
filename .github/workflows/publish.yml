@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
@@ -24,4 +28,4 @@ jobs:
         run: npm run clean && npm run package
 
       - name: Publish
-        run: npm publish --access public
+        run: npm publish
