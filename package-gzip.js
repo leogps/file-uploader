@@ -1,38 +1,30 @@
-const targz = require("targz");
-const { execSync } = require("child_process");
-const fs = require("fs");
+import targz from 'targz';
+import fs from 'fs';
 
-try {
-    console.log("Installing production dependencies...");
-    execSync("npm ci --only=production", { stdio: "inherit" });
+const DEST = 'file-uploader.tar.gz';
+const SRC = 'dist';
 
-    if (fs.existsSync("file-uploader.tar.gz")) {
-        fs.unlinkSync("file-uploader.tar.gz");
-    }
-
-    console.log("Creating package archive...");
-
-    targz.compress(
-        {
-            src: ".",
-            dest: "file-uploader.tar.gz",
-            tar: {
-                entries: [
-                    "dist",
-                    "node_modules",
-                    "package.json",
-                    "package-lock.json"
-                ]
-            }
-        },
-        (err) => {
-            if (err) {
-                console.error("Packaging error:", err);
-            } else {
-                console.log("Packaging complete: file-uploader.tar.gz");
-            }
-        }
-    );
-} catch (err) {
-    console.error("Error preparing package:", err);
+if (!fs.existsSync(SRC)) {
+    console.error(`Source folder "${SRC}" does not exist. Build first!`);
+    process.exit(1);
 }
+
+// Remove existing archive
+if (fs.existsSync(DEST)) {
+    fs.unlinkSync(DEST);
+    console.log(`Removed existing archive: ${DEST}`);
+}
+
+console.log(`Creating archive from "${SRC}" → ${DEST}...`);
+
+targz.compress({
+    src: SRC,
+    dest: DEST,
+}, (err) => {
+    if (err) {
+        console.error('Packaging failed:', err);
+        process.exit(1);
+    } else {
+        console.log(`Packaging complete: ${DEST}`);
+    }
+});
