@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 const mode = process.env.NODE_ENV ? process.env.NODE_ENV : 'development'
 console.log("Mode chosen for webpack: " + mode)
@@ -29,5 +30,12 @@ module.exports = {
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, './dist/'),
-  }
+  },
+  plugins: [
+    new webpack.BannerPlugin({
+      banner: '#!/usr/bin/env node',
+      raw: true, // important: treat it as literal text
+      entryOnly: true,
+    }),
+    ],
 };

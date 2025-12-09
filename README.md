@@ -32,7 +32,7 @@ Both Server and Client are written in JS.
 
     --version              Show version number                            [boolean]
     -l, --upload_location  upload location
-                            [string] [default: "/Users/leogps/Downloads/uploads/"]
+                            [string] [default: "/Users/username/Downloads/uploads/"]
     -p, --port             server port                                    [number]
         --help             Show help                                      [boolean]
 

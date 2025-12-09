@@ -1,0 +1,8 @@
+.gitignore
+*.iml
+.idea/
+.vscode/
+dist/
+file-uploader.tar.gz
+
+node_modules/

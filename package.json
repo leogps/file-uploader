@@ -1,7 +1,11 @@
 {
-  "name": "file-uploader",
+  "name": "@leogps/file-uploader",
   "version": "2.0.0",
-  "description": "Facilitates file uploads.",
+  "description": "Facilitates file uploader server.",
+  "main": "src/index.ts",
+  "bin": {
+    "file-uploader": "./dist/index.js"
+  },
   "scripts": {
     "clean": "rimraf dist file-uploader.tar.gz",
     "precompile": "eslint -c .eslintrc.js --fix --ext .ts src src-client",
@@ -13,12 +17,13 @@
     "compile-prod": "npm run precompile && npm run compile-server && npm run compile-client-prod",
     "build-prod": "npm run compile-prod",
     "start": "npm run build-dev && node dist/index.js",
-    "package": "cross-env NODE_ENV=production npm run build-prod && node ./package-gzip.js",
+    "package": "cross-env NODE_ENV=production npm run build-prod && chmod +x ./dist/index.js && node ./package-gzip.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:server:once": "npm run compile-server && npm run compile-client-dev",
     "dev:server": "npm run build:server:once && npm-run-all --parallel nodemon:prod watch:client",
     "watch:client": "cross-env NODE_ENV=development ./node_modules/webpack-cli/bin/cli.js --config webpack-client.dev.js --watch",
-    "nodemon:prod": "cross-env NODE_ENV=development ./node_modules/node-dev/bin/node-dev ./dist/index.js"
+    "nodemon:prod": "cross-env NODE_ENV=development ./node_modules/node-dev/bin/node-dev ./dist/index.js",
+    "pre-publish": "npm run clean && npm run package"
   },
   "nodemonConfig": {
     "watch": [
@@ -41,7 +46,6 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.4",
     "bulma": "^1.0.4",
-    "cross-env": "^7.0.3",
     "express": "^4.18.2",
     "formidable": "^3.5.4",
     "jquery": "^3.7.1",
@@ -55,7 +59,6 @@
     "serve-favicon": "^2.5.0",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
-    "targz": "^1.0.1",
     "toastify-js": "^1.12.0",
     "uuid": "^9.0.1",
     "yargs": "^17.7.2"
@@ -75,6 +78,7 @@
     "@typescript-eslint/parser": "^8.48.1",
     "clean-webpack-plugin": "^4.0.0",
     "concurrently": "^7.3.0",
+    "cross-env": "^7.0.3",
     "css-loader": "^6.7.1",
     "css-minimizer-webpack-plugin": "^4.0.0",
     "eslint": "^9.39.1",
@@ -92,6 +96,7 @@
     "sass": "^1.94.2",
     "sass-loader": "^13.3.3",
     "style-loader": "^3.3.1",
+    "targz": "^1.0.1",
     "ts-loader": "^9.5.4",
     "tsc-watch": "^5.0.3",
     "typescript": "^5.9.3",
