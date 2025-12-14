@@ -2,6 +2,7 @@ import prettyBytes from 'pretty-bytes'
 
 const TRANSFER_SAMPLE_FREQ = 1000; // 1second
 const MIN_SAMPLE_FREQ = TRANSFER_SAMPLE_FREQ / 4;
+export const RATE_WINDOW_MS = 6000;
 
 export enum UploadStatus {
     INITIATED = "INITIATED",
