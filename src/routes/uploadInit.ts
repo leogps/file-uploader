@@ -1,6 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import {uploadsProgressMap, progresses, getUploadsDir, MAX_PARALLEL_CHUNK_UPLOADS, MAX_CHUNK_SIZE} from '../globals';
+import {
+    uploadsProgressMap,
+    progresses,
+    getUploadsDir,
+    getUploadChunkSize, getMaxParallelChunkUploads
+} from '../globals';
 import { FileTransferProgress } from '../model/progress';
 import path from "path";
 import fs from "fs";
@@ -48,7 +53,7 @@ router.post('/', (req: Request, res: Response) => {
             progress = new FileTransferProgress(fileId, Date.now());
             progress.fileName = fileName;
             progress.bytesExpected = fileSize;
-            progress.chunkSize = 5 * 1024 * 1024;
+            progress.chunkSize = getUploadChunkSize();
             progress.totalChunks = Math.ceil(fileSize / progress.chunkSize);
             progress.bytesReceived = fs.statSync(finalPath).size; // resume
             progress.resetUploadedChunks();
@@ -63,7 +68,7 @@ router.post('/', (req: Request, res: Response) => {
         progress = new FileTransferProgress(fileId, Date.now());
         progress.fileName = fileName;
         progress.bytesExpected = fileSize;
-        progress.chunkSize = MAX_CHUNK_SIZE;
+        progress.chunkSize = getUploadChunkSize();
         progress.totalChunks = Math.ceil(fileSize / progress.chunkSize);
         progress.resetUploadedChunks();
         uploadsProgressMap.set(fileId, progress);
@@ -77,7 +82,7 @@ router.post('/', (req: Request, res: Response) => {
         fileId,
         chunkSize: progress.chunkSize,
         totalChunks: progress.totalChunks,
-        maxParallel: MAX_PARALLEL_CHUNK_UPLOADS,
+        maxParallel: getMaxParallelChunkUploads(),
         bytesReceived: progress.bytesReceived || 0 // client can skip uploaded chunks
     });
 });

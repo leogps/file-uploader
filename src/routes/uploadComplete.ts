@@ -1,5 +1,5 @@
 import {Request, Response, Router} from 'express';
-import {getProgressWriter, progresses, uploadsProgressMap} from '../globals';
+import {throttledBroadcaster, uploadsProgressMap} from '../globals';
 import {FileTransferProgress, UploadStatus} from "../model/progress";
 
 export const router = Router();
@@ -30,7 +30,7 @@ router.post('/', (req: Request, res: Response) => {
             console.log(`Marking upload failed for file ${progress.fileName} ${progress.uuid}`);
             progress.lastState = UploadStatus.FAILED;
         }
-        getProgressWriter().writeProgress(progresses);
+        throttledBroadcaster();
         return res.status(400).json({
             msg: 'File incomplete',
             uploadedChunks: Array.from(progress.uploadedChunks),
@@ -40,7 +40,7 @@ router.post('/', (req: Request, res: Response) => {
 
     progress.completed = Date.now();
     progress.lastState = UploadStatus.COMPLETE;
-    getProgressWriter().writeProgress(progresses);
+    throttledBroadcaster();
 
     res.json({
         msg: 'File upload complete',

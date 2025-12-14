@@ -1,6 +1,5 @@
-
-
 import express, { Express, Request, Response } from 'express';
+import compression from 'compression';
 import {createServer, Server} from "http"
 import {router as uploadInitRouter} from "./routes/uploadInit";
 import {router as uploadChunkRouter} from "./routes/uploadChunk";
@@ -11,13 +10,18 @@ import * as socketio from "socket.io";
 import yargs from "yargs";
 import {hideBin} from "yargs/helpers";
 import * as os from 'os';
-import {getProgressWriter, progresses, setProgressWriter, setUploadsDir} from "./globals";
+import {
+  getEnableCompression,
+  getMaxParallelChunkUploads, getServerPort, getUploadChunkSize,
+  progresses, setEnableCompression,
+  setMaxParallelChunkUploads, setProgressWriter, setServerPort, setUploadChunkSize, setUploadsDir, throttledBroadcaster
+} from "./globals";
+import prettyBytes from "pretty-bytes";
 
 const homedir = os.homedir();
-let port = 8082;
 let uploadsDir = homedir + "/Downloads/uploads/"
 const argv: any = yargs(hideBin(process.argv))
-  .option('upload_location', {
+  .option('upload-location', {
     alias: 'l',
     type: 'string',
     description: 'upload location',
@@ -26,25 +30,58 @@ const argv: any = yargs(hideBin(process.argv))
   .option('port', {
     alias: 'p',
     type: 'number',
+    default: getServerPort(),
     description: 'server port'
+  })
+  .option('chunk-size', {
+    alias: 's',
+    type: 'number',
+    description: 'chunk size in bytes',
+    default: 512 * 1024
+  })
+  .option('parallel-uploads', {
+    alias: 'n',
+    type: 'number',
+    description: 'number of simultaneous parallel chunk uploads (per file)',
+    default: 10
+  })
+  .option('enable-compression', {
+    alias: 'c',
+    type: 'boolean',
+    description: 'enable gzip compression (server to client responses)',
+    default: true
   })
   .help()
   .argv
 
-if (argv.port) {
-  port = argv.port
-}
-if (argv.upload_location) {
-  uploadsDir = argv.upload_location.endsWith('/') ? argv.upload_location: argv.upload_location + '/'
+const uploadLocationArg = argv["upload-location"]
+if (uploadLocationArg) {
+  uploadsDir = uploadLocationArg.endsWith('/') ? uploadLocationArg: uploadLocationArg + '/'
 }
 setUploadsDir(uploadsDir)
+setUploadChunkSize(argv["chunk-size"])
+setMaxParallelChunkUploads(argv["parallel-uploads"])
+setEnableCompression(argv["enable-compression"])
+setServerPort(argv.port)
+const port = getServerPort()
 
-console.log("Upload location: " + uploadsDir)
-console.log("Server port: " + port)
+console.log(`Upload location: ${uploadsDir}`)
+console.log(`Max Parallel uploads per file: ${getMaxParallelChunkUploads()}`)
+console.log(`Parallel upload chunk size: ${prettyBytes(getUploadChunkSize())}`)
+console.log(`Compression: ${getEnableCompression() ? "Enabled" : "Disabled"}`)
+console.log(`Server port: ${port}`)
 
 const app: Express = express();
 const httpServer: Server = createServer(app)
 const io: socketio.Server = new socketio.Server(httpServer);
+if (getEnableCompression()) {
+  app.use(
+      compression({
+        threshold: 10 * 1024,
+        level: 4
+      })
+  )
+}
 
 setProgressWriter(new ProgressWriter(io));
 
@@ -69,7 +106,7 @@ app.get('/progresses', (_: Request, res: Response) => {
 io.on('connection', (socket: socketio.Socket) => {
   console.log('a user connected');
   // socket.emit('progresses', progresses);
-  getProgressWriter().writeProgress(progresses);
+  throttledBroadcaster();
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });

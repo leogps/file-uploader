@@ -10,7 +10,7 @@ export class ProgressUtils {
     let totalBytes = 0;
     let totalTimeMs = 0;
 
-    //Case vs Reason for skipping
+    // Case vs Reason for skipping
     // bytes === 0	idle / waiting / verification
     // bytes < 0	possibly corrupted or reset counter
     // timeMs === 0	divide-by-zero risk
