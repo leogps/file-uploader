@@ -33,7 +33,7 @@
       <form id="uploadForm" action="/upload" enctype="multipart/form-data" method="post">
         <div id="file-div" class="field file has-name is-boxed column is-flex-grow-1">
           <label class="file-label">
-            <input class="file-input" type="file" name="multipleFiles" multiple="multiple">
+            <input class="file-input" type="file" name="file" multiple="multiple">
             <span class="file-cta">
               <span class="file-icon">
                 <i class="fas fa-upload"></i>
@@ -44,6 +44,13 @@
             </span>
           </label>
           <div id="file-name" class="mt-1 wrap-text is-multiline"></div>
+        </div>
+
+        <div class="field">
+          <label class="checkbox">
+              <input id="disableChunkedUpload" type="checkbox">
+              Disable chunked/resumable upload (use /upload)
+          </label>
         </div>
 
         <div class="control field is-flex-grow-1">

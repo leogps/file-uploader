@@ -54,7 +54,7 @@ class PageEventRegistrar {
     private registerFileInputEventHandler() {
         const $fileDiv = jQuery("#file-div");
         const $fileNameDiv = $fileDiv.find("#file-name");
-        const $fileInput = jQuery("form#uploadForm input[name='multipleFiles']");
+        const $fileInput = jQuery("form#uploadForm input[name='file']");
         $fileInput.on("change", () => {
             this.onFilesChange($fileNameDiv, $fileInput);
         });
@@ -83,7 +83,7 @@ class PageEventRegistrar {
 
             // wrap async logic in an IIFE
             (async () => {
-                const formElement: any = $('input[name="multipleFiles"]')[0];
+                const formElement: any = $('input[name="file"]')[0];
                 const files: FileList = formElement.files;
 
                 if (!files || files.length === 0) {
@@ -95,6 +95,8 @@ class PageEventRegistrar {
                     return;
                 }
 
+                const disableChunked = (jQuery("#disableChunkedUpload").prop("checked") === true);
+
                 // Block form before uploading
                 $uploadForm.block({
                     message: '<h1 class="upload-block-modal p-2 m-0">Uploading...</h1>'
@@ -103,7 +105,11 @@ class PageEventRegistrar {
                 try {
                     // Upload all files sequentially
                     for (const file of Array.from(files)) {
-                        await this.uploadFile(file);
+                        if (disableChunked) {
+                            await this.uploadFileNonChunked(file);
+                        } else {
+                            await this.uploadFile(file);
+                        }
                     }
                 } finally {
                     // Unblock and reset form after all files finish
@@ -111,7 +117,7 @@ class PageEventRegistrar {
 
                     const $fileDiv = jQuery("#file-div");
                     const $fileNameDiv = $fileDiv.find("#file-name");
-                    const $fileInput = jQuery("form#uploadForm input[name='multipleFiles']");
+                    const $fileInput = jQuery("form#uploadForm input[name='file']");
                     this.onFilesChange($fileNameDiv, $fileInput);
 
                     $uploadForm.unblock();
@@ -126,6 +132,36 @@ class PageEventRegistrar {
                 }).showToast();
             });
         });
+    }
+
+    private async uploadFileNonChunked(file: File): Promise<void> {
+        const formData = new FormData();
+        // Server-side uses formidable({ multiples: true }) so using the same field name is fine
+        formData.append("file", file, file.name);
+
+        const resp = await fetch("/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        let data: any;
+        const contentType = resp.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+            data = await resp.json();
+        } else {
+            data = await resp.text();
+        }
+
+        if (!resp.ok) {
+            throw new Error(typeof data === "string" ? data : (data?.msg || "Upload failed"));
+        }
+
+        Toastify({
+            text: `Upload complete: ${file.name}`,
+            duration: -1,
+            close: true,
+            style: { background: "linear-gradient(to right, #00b09b, #96c93d)" }
+        }).showToast();
     }
 
     private async uploadFile(file: File): Promise<void> {

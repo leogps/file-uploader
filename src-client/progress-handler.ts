@@ -161,12 +161,13 @@ export class ProgressHandler {
                           <i class="fas fa-minus-circle m-0 p-0" aria-hidden="true" title="collapse"></i>
                         </span>
                     </a>
-                    <span class="ml-0 pl-0">
+                    <span class="file-name ml-0 pl-0">
                         ${progress.fileName}
                     </span>
                 </div>`);
                 $panel.append($panelHeading);
             }
+            $panelHeading.find(".file-name").text(progress.fileName || "");
 
             // Main progress bar (bytes)
             let $progressElem = $panel.find(`progress#${progressId}`);

@@ -5,15 +5,16 @@ import {router as uploadInitRouter} from "./routes/uploadInit";
 import {router as uploadChunkRouter} from "./routes/uploadChunk";
 import {router as uploadCompleteRouter} from "./routes/uploadComplete";
 import {router as uploadStatusRouter} from "./routes/uploadStatus";
+import {router as uploadRouter} from "./routes/upload";
 import {ProgressWriter} from "./service/progress_writer";
 import * as socketio from "socket.io";
 import yargs from "yargs";
 import {hideBin} from "yargs/helpers";
 import * as os from 'os';
 import {
-  getEnableCompression,
+  getEnableCompression, getMaxFileSize,
   getMaxParallelChunkUploads, getServerPort, getUploadChunkSize,
-  progresses, setEnableCompression,
+  progresses, setEnableCompression, setMaxFileSize,
   setMaxParallelChunkUploads, setProgressWriter, setServerPort, setUploadChunkSize, setUploadsDir, throttledBroadcaster
 } from "./globals";
 import prettyBytes from "pretty-bytes";
@@ -51,6 +52,12 @@ const argv: any = yargs(hideBin(process.argv))
     description: 'enable gzip compression (server to client responses)',
     default: true
   })
+  .option('max-file-size', {
+    alias: 'm',
+    type: 'number',
+    description: 'maximum file size in bytes',
+    default: getMaxFileSize()
+  })
   .help()
   .argv
 
@@ -63,6 +70,7 @@ setUploadChunkSize(argv["chunk-size"])
 setMaxParallelChunkUploads(argv["parallel-uploads"])
 setEnableCompression(argv["enable-compression"])
 setServerPort(argv.port)
+setMaxFileSize(argv["max-file-size"])
 const port = getServerPort()
 
 console.log(`Upload location: ${uploadsDir}`)
@@ -91,6 +99,7 @@ app.use('/upload/init', uploadInitRouter);
 app.use('/upload/chunk', uploadChunkRouter);
 app.use('/upload/complete', uploadCompleteRouter);
 app.use('/upload/status', uploadStatusRouter);
+app.use('/upload', uploadRouter);
 
 app.get('/', (_, res) => {
   res.sendFile(__dirname + '/client/index.html');

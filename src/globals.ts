@@ -7,6 +7,7 @@ let maxParallelChunkUploads = 10;
 let uploadsDir: string;
 let enableCompression = true;
 let serverPort = 8082;
+let maxFileSize = 100 * 1024 * 1024 * 1024; // 100Gb
 
 export const progresses: Progress[] = [];
 export const uploadsProgressMap: Map<string, Progress> = new Map();
@@ -27,6 +28,9 @@ export const getEnableCompression = () => enableCompression;
 
 export const setServerPort = (port: number) => { serverPort = port; };
 export const getServerPort = () => serverPort;
+
+export const setMaxFileSize = (size: number) => { maxFileSize = size; };
+export const getMaxFileSize = () => maxFileSize;
 
 export const setProgressWriter = (writer: ProgressWriter) => {
     progressWriter = writer;
