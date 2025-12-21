@@ -213,7 +213,7 @@ export class ProgressHandler {
                     <b>|</b> Uploaded: ${uploaded}/${totalChunks}`],
                 ["Speed", `${prettyBytes(ProgressUtils.calculateTransferRate(progress))}/s`],
                 ["Status", `${progress.lastState || "-"}`],
-                ["Progress", `${progressPercent}%`],
+                ["Progress", `${progressPercent.toFixed(2)}%`],
             ];
 
             if (progress.completed) {
