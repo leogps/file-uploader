@@ -17,7 +17,7 @@ Both Server and Client are written in JS.
 
 Using `npx` you can run the script without installing it first:
 
-    npx @leogps/file-uploader [path] [options
+    npx @leogps/file-uploader [path] [options]
 
 #### Globally via `npm`
 
