@@ -161,13 +161,13 @@ export class ProgressHandler {
                           <i class="fas fa-minus-circle m-0 p-0" aria-hidden="true" title="collapse"></i>
                         </span>
                     </a>
-                    <span class="file-name ml-0 pl-0">
+                    <span class="upload-file-name ml-0 pl-0">
                         ${progress.fileName}
                     </span>
                 </div>`);
                 $panel.append($panelHeading);
             }
-            $panelHeading.find(".file-name").text(progress.fileName || "");
+            $panelHeading.find(".upload-file-name").text(progress.fileName || "");
 
             // Main progress bar (bytes)
             let $progressElem = $panel.find(`progress#${progressId}`);
@@ -198,6 +198,10 @@ export class ProgressHandler {
             // Clear previous rows
             $table.empty();
 
+            let progressPercent: number = 0;
+            if (progress.bytesReceived != undefined && progress.bytesExpected != undefined) {
+                progressPercent = (progress.bytesReceived / progress.bytesExpected) * 100;
+            }
             // Define table rows
             const rows: [string, string][] = [
                 // ["File Name", progress.fileName || "-"],
@@ -209,6 +213,7 @@ export class ProgressHandler {
                     <b>|</b> Uploaded: ${uploaded}/${totalChunks}`],
                 ["Speed", `${prettyBytes(ProgressUtils.calculateTransferRate(progress))}/s`],
                 ["Status", `${progress.lastState || "-"}`],
+                ["Progress", `${progressPercent}%`],
             ];
 
             if (progress.completed) {
