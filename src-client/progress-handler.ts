@@ -198,8 +198,8 @@ export class ProgressHandler {
             // Clear previous rows
             $table.empty();
 
-            let progressPercent: number = 0;
-            if (progress.bytesReceived != undefined && progress.bytesExpected != undefined) {
+            let progressPercent = 0;
+            if (progress.bytesReceived !== undefined && progress.bytesExpected !== undefined) {
                 progressPercent = (progress.bytesReceived / progress.bytesExpected) * 100;
             }
             // Define table rows

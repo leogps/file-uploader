@@ -52,6 +52,7 @@
   "license": "MIT",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.4",
+    "@leogps/file-uploader": "^2.0.1",
     "bulma": "^1.0.4",
     "compression": "^1.8.1",
     "express": "^4.18.2",

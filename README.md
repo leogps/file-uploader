@@ -4,6 +4,13 @@ Zero-config command-line tool to run a file-uploader server. Files can be upload
 
 Both Server and Client are written in JS.
 
+## Features
+ - Chunked/Resumable uploads
+   - Chunk size is configurable `-s | --chunk-size`
+   - Number of Parallel uploads are configurable `-n | --parallel-uploads`
+   - Uses SHA1 verification to ensure chunks are valid
+ - Optionally disable resumable uploads
+
 ## Installation
 
 #### Running on-demand:
@@ -40,11 +47,15 @@ with the provided Dockerfile.
 
     file-uploader [path] [options]
 
-    --version              Show version number                            [boolean]
-    -l, --upload_location  upload location
-                            [string] [default: "/Users/username/Downloads/uploads/"]
-    -p, --port             server port                                    [number]
-        --help             Show help                                      [boolean]
+    Options:
+      -l, --upload-location     upload location             [string] [default: "/Users/<username>/uploads/"]
+      -p, --port                server port                 [number] [default: 8082]
+      -s, --chunk-size          chunk size in bytes         [number] [default: 524288]
+      -n, --parallel-uploads    number of simultaneous parallel chunk uploads (per file)     [number] [default: 10]
+      -c, --enable-compression  enable gzip compression (server to client responses)         [boolean] [default: true]
+      -m, --max-file-size       maximum file size in bytes                 [number] [default: 107374182400]
+      --version                 Show version number                        [boolean]
+      --help                    Show help                                  [boolean]
 
 # Development
 

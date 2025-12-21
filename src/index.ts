@@ -20,7 +20,7 @@ import {
 import prettyBytes from "pretty-bytes";
 
 const homedir = os.homedir();
-let uploadsDir = homedir + "/Downloads/uploads/"
+let uploadsDir = homedir + "/uploads/"
 const argv: any = yargs(hideBin(process.argv))
   .option('upload-location', {
     alias: 'l',
