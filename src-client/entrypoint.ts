@@ -3,6 +3,7 @@ import "jquery-blockui/jquery.blockUI.js";
 import "./style.scss";
 import Toastify from "toastify-js";
 import {computeSHA1} from "./sha1";
+import {ServerConfigJson} from "../src/globals";
 
 const MAX_COMPLETE_CHECK_RETRIES = 20;
 const COMPLETE_CHECK_RETRY_DELAY_MS = 1000;
@@ -14,6 +15,28 @@ jQuery(() => {
     const pageEventRegistrar = new PageEventRegistrar();
     pageEventRegistrar.registerEvents();
 });
+
+const asyncPool = async <T>(
+    poolLimit: number,
+    array: T[],
+    iteratorFn: (item: T) => Promise<void>
+): Promise<void> => {
+    const executing = new Set<Promise<void>>();
+
+    for (const item of array) {
+        const p = Promise.resolve().then(() => iteratorFn(item));
+        executing.add(p);
+
+        const clean = () => executing.delete(p);
+        p.then(clean).catch(clean);
+
+        if (executing.size >= poolLimit) {
+            await Promise.race(executing);
+        }
+    }
+
+    await Promise.all(executing);
+};
 
 class PageEventRegistrar {
     public registerEvents(): void {
@@ -95,43 +118,95 @@ class PageEventRegistrar {
                     return;
                 }
 
-                const disableChunked = (jQuery("#disableChunkedUpload").prop("checked") === true);
-
                 // Block form before uploading
                 $uploadForm.block({
                     message: '<h1 class="upload-block-modal p-2 m-0">Uploading...</h1>'
                 });
 
-                try {
-                    // Upload all files sequentially
-                    for (const file of Array.from(files)) {
-                        if (disableChunked) {
-                            await this.uploadFileNonChunked(file);
-                        } else {
-                            await this.uploadFile(file);
-                        }
+                const disableChunked = (jQuery("#disableChunkedUpload").prop("checked") === true);
+                console.log("disableChunked?", disableChunked);
+
+                const serverConfigResponse = await this.retrieveConfig();
+                const errorMessage = serverConfigResponse.error
+                if (errorMessage) {
+                    let errorText = errorMessage;
+                    const errorObject = serverConfigResponse.errorObject;
+                    const errorObjectMessage = errorObject instanceof Error ? errorObject.message : String(errorObject);
+                    if (serverConfigResponse.errorObject) {
+                        errorText = `${errorText}. ${errorObjectMessage}`;
                     }
-                } finally {
-                    // Unblock and reset form after all files finish
-                    $uploadForm.trigger("reset");
-
-                    const $fileDiv = jQuery("#file-div");
-                    const $fileNameDiv = $fileDiv.find("#file-name");
-                    const $fileInput = jQuery("form#uploadForm input[name='file']");
-                    this.onFilesChange($fileNameDiv, $fileInput);
-
-                    $uploadForm.unblock();
+                    console.error(errorText);
+                    Toastify({
+                        text: errorText,
+                        duration: -1,
+                        close: true,
+                        style: { background: "linear-gradient(to right, #F39454, #FF6600)" }
+                    }).showToast();
                 }
+                const serverConfigJson = serverConfigResponse.response;
+                await this.doUpload(files, {
+                    $uploadForm,
+                    serverConfig: serverConfigJson,
+                    disableChunkedUpload: disableChunked,
+                });
             })().catch(err => {
+                const message = err instanceof Error ? err.message : String(err);
                 console.error("Error during upload:", err);
                 Toastify({
-                    text: `Upload error: ${err}`,
+                    text: `Upload failed: ${message}`,
                     duration: -1,
                     close: true,
                     style: { background: "linear-gradient(to right, #F39454, #FF6600)" }
                 }).showToast();
             });
         });
+    }
+
+    private async doUpload(files: FileList, {
+        disableChunkedUpload = false,
+        serverConfig,
+        $uploadForm,
+    }: {
+        disableChunkedUpload: boolean,
+        serverConfig?: ServerConfigJson,
+        $uploadForm: JQuery<HTMLElement>
+    }):Promise<void> {
+        try {
+            let maxParallelFileUploads = 1;
+            if (serverConfig != null) {
+                maxParallelFileUploads = serverConfig.maxParallelFileUploads;
+            }
+            console.log(`Max parallel file uploads: ${maxParallelFileUploads}`);
+            await asyncPool(
+                maxParallelFileUploads,
+                Array.from(files),
+                async (file) => {
+                    if (disableChunkedUpload) {
+                        await this.uploadFileNonChunked(file);
+                    } else {
+                        await this.uploadFile(file);
+                    }
+                }
+            ).catch(err => {
+                console.error("Error during upload:", err);
+                Toastify({
+                    text: `Upload failed: ${err}`,
+                    duration: -1,
+                    close: true,
+                    style: { background: "linear-gradient(to right, #F39454, #FF6600)" }
+                }).showToast();
+            });
+        } finally {
+            // Unblock and reset form after all files finish
+            $uploadForm.trigger("reset");
+
+            const $fileDiv = jQuery("#file-div");
+            const $fileNameDiv = $fileDiv.find("#file-name");
+            const $fileInput = jQuery("form#uploadForm input[name='file']");
+            this.onFilesChange($fileNameDiv, $fileInput);
+
+            $uploadForm.unblock();
+        }
     }
 
     private async uploadFileNonChunked(file: File): Promise<void> {
@@ -175,7 +250,7 @@ class PageEventRegistrar {
             const initData = await initResp.json();
             const fileId: string = initData.fileId;
             const chunkSize: number = initData.chunkSize;
-            const maxParallel: number = initData.maxParallel || 3;
+            const maxParallelChunkUploads: number = initData.maxParallelChunkUploads || 3;
             const totalChunks: number = Math.ceil(file.size / chunkSize);
 
             // Active upload pool
@@ -226,7 +301,7 @@ class PageEventRegistrar {
                 pool.push(taskPromise);
 
                 // If pool is full, wait for at least one to finish
-                if (pool.length >= maxParallel) {
+                if (pool.length >= maxParallelChunkUploads) {
                     await Promise.race(pool).catch((err) => {
                         console.warn(`Pool full, but one task failed, err: ${err}`);
                     }); // don't block other tasks
@@ -306,4 +381,33 @@ class PageEventRegistrar {
             }
         }
     }
+
+    private async retrieveConfig(): Promise<ResponseOrError<ServerConfigJson>> {
+        try {
+            const response = await fetch(`/config`)
+            if (response.ok) {
+                const serverConfigJson = await response.json();
+                return {
+                    response: serverConfigJson as ServerConfigJson
+                };
+            }
+            return {
+                "error": `Could not retrieve config: ${response.status}`
+            };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.error(`Could not retrieve config: ${errorMessage}`);
+            return {
+                error: `Failed to retrieve config: ${errorMessage}`,
+                errorObject: error,
+            };
+        }
+
+    }
+}
+
+interface ResponseOrError<T> {
+    response?: T;
+    error?: string,
+    errorObject?: any
 }

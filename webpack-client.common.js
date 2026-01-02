@@ -5,11 +5,6 @@ module.exports = {
     entry: './src-client/entrypoint.ts',
     module: {
         rules: [
-            {
-                test: /\.tsx?$/,
-                use: 'ts-loader',
-                exclude: /node_modules/,
-            }
         ]
     },
     resolve: {

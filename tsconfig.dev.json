@@ -1,0 +1,11 @@
+// tsconfig.dev.json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "sourceMap": true,
+    "inlineSources": true,
+    "outDir": "dist",
+    "incremental": true
+  },
+  "include": ["src/**/*", "src-client/**/*"]
+}

@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const mode = process.env.NODE_ENV ? process.env.NODE_ENV : 'development'
 console.log("Mode chosen for webpack: " + mode)
 const devtool = mode === 'development' ? 'eval': 'nosources-source-map'
+const tsconfigFile = mode === 'development' ? 'tsconfig.dev.json' : 'tsconfig.json'
 module.exports = {
   mode: mode,
   devtool: devtool,
@@ -19,8 +20,11 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
+        loader: "ts-loader",
+        exclude: /node_modules/,
+        options: {
+          configFile: tsconfigFile
+        },
       }
     ]
   },

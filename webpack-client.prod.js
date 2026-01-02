@@ -10,6 +10,14 @@ module.exports = webpackMerge.merge(common,{
     module: {
         rules: [
             {
+                test: /\.tsx?$/,
+                loader: "ts-loader",
+                exclude: /node_modules/,
+                options: {
+                    configFile: "tsconfig.json"
+                },
+            },
+            {
                 test: /\.css$/,
                 use: [
                     MiniCssExtractPlugin.loader, // 3. Extract css into files. 

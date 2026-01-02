@@ -8,6 +8,14 @@ module.exports = webpackMerge.merge(common, {
   module: {
     rules: [
       {
+        test: /\.tsx?$/,
+        loader: "ts-loader",
+        exclude: /node_modules/,
+        options: {
+          configFile: "tsconfig.dev.json"
+        },
+      },
+      {
         test: /\.css$/,
         use: [
           'style-loader',   // 3. Injects css into DOM

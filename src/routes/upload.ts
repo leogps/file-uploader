@@ -2,11 +2,9 @@ import { Router } from 'express';
 import formidable, { File } from "formidable";
 import { v4 as uuidv4 } from 'uuid';
 import {
-    getMaxFileSize,
-    getUploadsDir,
-    progresses,
+    getServerConfig,
+    progresses, ServerConfig,
     throttledBroadcaster,
-    throttleWaitTimeInMillis,
     uploadsProgressMap
 } from "../globals";
 import {FileTransferProgress, Progress, UploadStatus} from "../model/progress";
@@ -14,11 +12,12 @@ import _ from "lodash";
 import prettyBytes from "pretty-bytes";
 import mv from "mv";
 
+const serverConfig: ServerConfig = getServerConfig();
 export const router = Router();
 
 router.post('/', (req: any, res: any) => {
-    const maxFileSize = getMaxFileSize();
-    const uploadsDir = getUploadsDir();
+    const maxFileSize = serverConfig.maxFileSize;
+    const uploadsDir = serverConfig.uploadsDir;
     // parse a file upload
     const form = formidable({
         multiples: true,
@@ -47,7 +46,7 @@ router.post('/', (req: any, res: any) => {
             console.warn("Progress not found in the map for uuid: " + uuid);
             return;
         }
-    }, throttleWaitTimeInMillis, {
+    }, serverConfig.throttleWaitTimeInMillis, {
         leading: true
     });
 

@@ -5,11 +5,11 @@ import path from "path";
 import crypto from "crypto";
 import {
     uploadsProgressMap,
-    getUploadsDir,
-    throttledBroadcaster
+    throttledBroadcaster, getServerConfig
 } from "../globals";
 import { FileTransferProgress } from "../model/progress";
 
+const serverConfig = getServerConfig();
 export const router = Router();
 
 router.post("/", (req: Request, res: Response) => {
@@ -30,7 +30,7 @@ router.post("/", (req: Request, res: Response) => {
 
         const progress = uploadsProgressMap.get(fileId)! as FileTransferProgress;
 
-        const uploadDir = getUploadsDir();
+        const uploadDir = serverConfig.uploadsDir;
         await fs.mkdir(uploadDir, { recursive: true });
 
         const form = formidable({
