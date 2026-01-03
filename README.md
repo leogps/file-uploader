@@ -5,9 +5,11 @@ Zero-config command-line tool to run a file-uploader server. Files can be upload
 Both Server and Client are written in JS.
 
 ## Features
+ - Parallel file uploads
+   - Number of files to upload simultaneously can be configured `-N | --parallel-file-uploads`
  - Chunked/Resumable uploads
    - Chunk size is configurable `-s | --chunk-size`
-   - Number of Parallel uploads are configurable `-n | --parallel-uploads`
+   - Number of Parallel uploads are configurable `-n | --parallel-chunk-uploads`
    - Uses SHA1 verification to ensure chunks are valid
  - Optionally disable resumable uploads
 
@@ -45,17 +47,18 @@ with the provided Dockerfile.
 
 ### Usage
 
-    file-uploader [path] [options]
+    🚀file-uploader [path] [options]
 
     Options:
-      -l, --upload-location     upload location             [string] [default: "/Users/<username>/uploads/"]
-      -p, --port                server port                 [number] [default: 8082]
-      -s, --chunk-size          chunk size in bytes         [number] [default: 524288]
-      -n, --parallel-uploads    number of simultaneous parallel chunk uploads (per file)     [number] [default: 10]
-      -c, --enable-compression  enable gzip compression (server to client responses)         [boolean] [default: true]
-      -m, --max-file-size       maximum file size in bytes                 [number] [default: 107374182400]
-      --version                 Show version number                        [boolean]
-      --help                    Show help                                  [boolean]
+      -l, --upload-location         upload location                                          [string] [default: "/Users/<username>/uploads/"]
+      -p, --port                    server port                                              [number] [default: 8082]
+      -s, --chunk-size              chunk size in bytes                                      [number] [default: 512 KiB]
+      -N, --parallel-file-uploads   number of simultaneous parallel file uploads             [number] [default: 3]
+      -n, --parallel-chunk-uploads  number of simultaneous parallel chunk uploads (per file) [number] [default: 10]
+      -c, --enable-compression      enable gzip compression (server to client responses)     [boolean] [default: true]
+      -m, --max-file-size           maximum file size in bytes                               [number] [default: 100 GiB]
+      --version                     Show version number                                      [boolean]
+      --help                        Show help                                                [boolean]
 
 # Development
 

@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 // version:start
-export const APP_VERSION = '2.0.2';
+export const APP_VERSION = '2.0.4';
 // version:end
 
 export interface ServerConfig {
