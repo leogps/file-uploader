@@ -19,7 +19,7 @@ Both Server and Client are written in JS.
 
 Using `npx` you can run the script without installing it first:
 
-    npx @leogps/file-uploader [path] [options]
+    npx @leogps/file-uploader [options]
 
 #### Globally via `npm`
 
@@ -47,7 +47,7 @@ with the provided Dockerfile.
 
 ### Usage
 
-    🚀file-uploader [path] [options]
+    🚀file-uploader [options]
 
     Options:
       -l, --upload-location         upload location                                          [string] [default: "/Users/<username>/uploads/"]

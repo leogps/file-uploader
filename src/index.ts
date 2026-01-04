@@ -85,7 +85,7 @@ updateServerConfig({
 })
 console.log(`Upload location: ${serverConfig.uploadsDir}`)
 console.log(`Max Parallel file uploads: ${serverConfig.maxParallelFileUploads}`)
-console.log(`Max Parallel uploads per file: ${serverConfig.maxParallelChunkUploads}`)
+console.log(`Max Parallel (chunk) uploads per file: ${serverConfig.maxParallelChunkUploads}`)
 console.log(`Parallel upload chunk size: ${prettyBytes(serverConfig.uploadChunkSize, {binary: true})}`)
 console.log(`Compression: ${serverConfig.enableCompression ? "Enabled" : "Disabled"}`)
 console.log(`Server port: ${serverConfig.serverPort}`)
